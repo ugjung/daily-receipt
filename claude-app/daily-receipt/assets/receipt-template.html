@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>오늘 한 일 영수증</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nanum+Gothic+Coding:wght@400;700&display=swap">
+<style>
+:root{--bg:#eceae6;--paper:#ffffff;--ink:#1a1a1a;--sub:#777777;--line:#999999;--soft:#555555;--track:#dddddd}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#1d1f22;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#1d1f22;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Nanum Gothic Coding','D2Coding',Consolas,monospace;display:flex;flex-direction:column;align-items:center;padding:32px 16px 48px}
+.paper{width:100%;max-width:400px;background:var(--paper);color:var(--ink);padding:28px 22px 22px;box-shadow:0 6px 24px rgba(0,0,0,.18);position:relative;font-size:13px;line-height:1.5}
+.paper:after{content:"";position:absolute;left:0;right:0;bottom:-10px;height:10px;background:linear-gradient(-45deg,transparent 7px,var(--paper) 0),linear-gradient(45deg,transparent 7px,var(--paper) 0);background-size:14px 14px}
+h1{text-align:center;font-size:24px;letter-spacing:.35em;margin:0 0 2px}
+.tag{text-align:center;color:var(--sub);font-size:11px;letter-spacing:.2em;margin-bottom:14px}
+.hr{border-top:1px dashed var(--line);margin:10px 0}
+.hr2{border-top:2px solid var(--ink);margin:10px 0}
+.kv{display:flex;justify-content:space-between;gap:10px}
+.kv span:first-child{color:var(--sub);white-space:nowrap}
+.kv span:last-child{text-align:right}
+.head{display:flex;justify-content:space-between;font-weight:700;border-bottom:1px solid var(--ink);padding-bottom:4px;margin-bottom:12px}
+.row{display:flex;align-items:baseline;gap:6px}
+.no{color:var(--sub);font-size:11px}
+.kind{font-size:10px;border:1px solid var(--ink);padding:0 4px;line-height:15px;white-space:nowrap;align-self:center}
+.name{font-weight:700;word-break:keep-all;min-width:0}
+.main{font-size:9px;background:var(--ink);color:var(--paper);padding:0 4px;line-height:14px;letter-spacing:.08em;align-self:center}
+.lead{flex:1;border-bottom:1px dotted var(--line);min-width:12px;transform:translateY(-3px)}
+.amt{white-space:nowrap;font-weight:700;font-variant-numeric:tabular-nums}
+.item{margin-bottom:11px}
+.item.in{padding-left:10px;border-left:2px solid var(--ink);margin-left:2px}
+.done{color:var(--soft);font-size:11.5px;padding-left:22px;word-break:keep-all;margin-top:1px}
+.bar{margin:4px 0 0 22px;height:3px;background:repeating-linear-gradient(90deg,var(--track) 0 2px,transparent 2px 4px)}
+.bar i{display:block;height:100%;background:var(--ink)}
+.group{display:flex;align-items:baseline;gap:6px;margin:16px 0 8px;font-size:12px}
+.group:first-child{margin-top:0}
+.gname{background:var(--ink);color:var(--paper);padding:1px 7px;font-weight:700}
+.gsum{color:var(--sub);white-space:nowrap}
+.total{display:flex;justify-content:space-between;font-size:18px;font-weight:700;margin:4px 0}
+.sec{text-align:center;font-weight:700;margin:4px 0 6px}
+.carry{font-size:12px;word-break:keep-all}
+.memo{text-align:center;font-size:14px;font-weight:700;margin:8px 0;word-break:keep-all}
+.barcode{height:46px;margin:14px 8px 4px;background:repeating-linear-gradient(90deg,var(--ink) 0 2px,transparent 2px 4px,var(--ink) 4px 5px,transparent 5px 8px,var(--ink) 8px 11px,transparent 11px 12px)}
+.code{text-align:center;font-size:11px;letter-spacing:.3em}
+.foot{text-align:center;color:var(--sub);font-size:11px;margin-top:10px}
+.actions{display:flex;gap:8px;margin-top:28px;flex-wrap:wrap;justify-content:center}
+button{font-family:inherit;border:1px solid var(--ink);background:var(--ink);color:var(--paper);padding:8px 16px;cursor:pointer}
+button:focus-visible{outline:2px solid #2f5bd3;outline-offset:2px}
+pre#plain{display:none;max-width:400px;width:100%;white-space:pre-wrap;background:var(--paper);color:var(--ink);padding:12px;font-family:inherit;font-size:12px;margin-top:12px}
+</style>
+</head>
+<body>
+<!-- Claude는 아래 DATA 블록의 JSON만 바꾼다. 나머지는 그대로 둔다. -->
+<script type="application/json" id="data">
+{
+  "date": "2026-10-13",
+  "weekday": "화",
+  "store": "모비데이즈 AX팀",
+  "customer": "홍길동",
+  "issued_at": "20261013180012",
+  "payments": ["Claude Opus 5.5"],
+  "items": [
+    {"group": "광고주발굴", "kind": "기획", "name": "기획 재정리", "minutes": 30, "done": "기존 자료 점검, 기획 다시 작성"},
+    {"group": "광고주발굴", "kind": "분석", "name": "타깃 정의", "minutes": 14, "done": "성사 사례 보고 우선 타깃 선정"},
+    {"group": "", "kind": "문서", "name": "주간 보고 정리", "minutes": 20, "done": "팀 주간 보고 초안 완성"}
+  ],
+  "carry_over": ["담당자에게 전체 기간 데이터 요청"],
+  "one_liner": "기획부터 첫 수집까지 한 바퀴"
+}
+</script>
+
+<div class="paper" id="receipt"></div>
+<div class="actions"><button type="button" id="cp">텍스트 복사</button></div>
+<pre id="plain"></pre>
+
+<script>
+(function(){
+  var r = JSON.parse(document.getElementById('data').textContent);
+  var items = r.items || [];
+  var hasMin = items.length && items.every(function(i){ return typeof i.minutes === 'number'; });
+  function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+  function dur(m){ var h = Math.floor(m/60), mm = m%60; return h ? h+'시간 '+(mm<10?'0':'')+mm+'분' : mm+'분'; }
+  function amount(i){ return hasMin ? dur(i.minutes) : (i.chats ? '대화 '+i.chats+'회' : ''); }
+  function weight(i){ return hasMin ? i.minutes : (i.chats || 1); }
+  var top = Math.max.apply(null, items.map(weight).concat([1]));
+  var approval = r.issued_at || '';
+
+  var groups = [], byName = {};
+  items.forEach(function(i){ var g = i.group || ''; if(!(g in byName)){ byName[g] = []; groups.push(g); } byName[g].push(i); });
+
+  var html = [], text = [], n = 0;
+  groups.forEach(function(g){
+    var members = byName[g], boxed = g && members.length > 1;
+    if(boxed){
+      var sub = members.reduce(function(a,i){ return a + weight(i); }, 0);
+      html.push('<div class="group"><span class="gname">'+esc(g)+'</span><span class="lead"></span><span class="gsum">소계 '+(hasMin?dur(sub):'대화 '+sub+'회')+'</span></div>');
+      text.push('■ '+g+'  ('+(hasMin?dur(sub):'대화 '+sub+'회')+')');
+    }
+    members.forEach(function(i){
+      n++;
+      var no = (n<10?'0':'')+n;
+      var kind = i.kind ? '<span class="kind">'+esc(i.kind)+'</span>' : '';
+      var main = weight(i) === top ? '<span class="main">MAIN</span>' : '';
+      var pct = Math.max(4, Math.round(weight(i)/top*100));
+      html.push('<div class="item'+(boxed?' in':'')+'"><div class="row"><span class="no">'+no+'</span>'+kind+'<span class="name">'+esc(i.name)+'</span>'+main+'<span class="lead"></span><span class="amt">'+esc(amount(i))+'</span></div>'+
+        (i.done ? '<div class="done">'+esc(i.done)+'</div>' : '')+'<div class="bar"><i style="width:'+pct+'%"></i></div></div>');
+      text.push(' '+no+' '+(i.kind?'['+i.kind+'] ':'')+i.name+' .. '+amount(i));
+      if(i.done) text.push('     ㄴ '+i.done);
+    });
+  });
+
+  var total = items.reduce(function(a,i){ return a + weight(i); }, 0);
+  var totalStr = hasMin ? dur(total) : '대화 '+total+'회';
+  var pays = (r.payments && r.payments.length ? r.payments : ['Claude']).map(function(p, k){
+    return '<div class="kv"><span>'+(k===0?'결제수단':'')+'</span><span>'+esc(p)+'</span></div>';
+  }).join('');
+  var carry = (r.carry_over || []);
+  var carryHtml = carry.length ? '<div class="sec">** 내일로 이월 (적립 예정) **</div>'+carry.map(function(c){ return '<div class="carry">- '+esc(c)+'</div>'; }).join('')+'<div class="hr"></div>' : '';
+
+  document.getElementById('receipt').innerHTML =
+    '<h1>영수증</h1><div class="tag">오늘 한 일 / TODAY\'S RECEIPT</div>'+
+    (r.store ? '<div class="kv"><span>상호</span><span>'+esc(r.store)+'</span></div>' : '')+
+    (r.customer ? '<div class="kv"><span>고객</span><span>'+esc(r.customer)+'</span></div>' : '')+
+    '<div class="kv"><span>일시</span><span>'+esc(r.date)+'('+esc(r.weekday)+')</span></div>'+
+    '<div class="hr2"></div><div class="head"><span>품명</span><span>'+(hasMin?'사용시간':'대화 수')+'</span></div>'+
+    html.join('')+
+    '<div class="hr"></div><div class="kv"><span>품목 수</span><span>'+items.length+'</span></div><div class="hr2"></div>'+
+    '<div class="total"><span>'+(hasMin?'총 사용시간':'총 대화 수')+'</span><span>'+totalStr+'</span></div>'+
+    pays+
+    (approval ? '<div class="kv"><span>승인번호</span><span>'+esc(approval)+'</span></div>' : '')+
+    '<div class="hr"></div>'+carryHtml+
+    (r.one_liner ? '<div class="memo">"'+esc(r.one_liner)+'"</div>' : '')+
+    '<div class="barcode"></div><div class="code">'+esc(approval)+'</div>'+
+    '<div class="foot">'+(hasMin?'※ 사용시간은 Claude와 대화한 시간 기준<br>':'')+'교환 및 환불 불가. 오늘도 수고하셨습니다.</div>';
+
+  var plain = ['🧾 오늘 한 일 영수증  '+r.date+'('+r.weekday+')', [r.store, r.customer].filter(Boolean).join(' / '), '----------------------------']
+    .concat(text, ['----------------------------', (hasMin?'총 사용시간  ':'총 대화 수  ')+totalStr], carry.map(function(c){ return '이월  '+c; }), r.one_liner ? ['"'+r.one_liner+'"'] : [])
+    .filter(function(l){ return l !== ''; }).join('\n');
+
+  var btn = document.getElementById('cp'), pre = document.getElementById('plain');
+  btn.addEventListener('click', function(){
+    function ok(){ btn.textContent = '복사됨'; setTimeout(function(){ btn.textContent = '텍스트 복사'; }, 1500); }
+    function show(){ pre.textContent = plain; pre.style.display = 'block'; var rg = document.createRange(); rg.selectNodeContents(pre); var s = getSelection(); s.removeAllRanges(); s.addRange(rg); btn.textContent = '선택됨, Ctrl+C'; }
+    try { navigator.clipboard.writeText(plain).then(ok, show); } catch(e) { show(); }
+  });
+})();
+</script>
+</body>
+</html>
