@@ -1,6 +1,6 @@
 ---
 name: receipt
-description: 그날 Claude Code로 한 작업을 "오늘 한 일 영수증"(한국어 영수증 모양 HTML)으로 정리한다. "오늘 한 일 영수증", "작업 영수증", "/daily-receipt:receipt" 요청이나 예약 실행 때만 사용한다. 경비, 지출결의, 카드 영수증 같은 실제 영수증 처리에는 쓰지 않는다.
+description: 그날 Claude(Claude Code, Cowork, 채팅)로 한 작업을 "오늘 한 일 영수증"(한국어 영수증 모양 HTML)으로 정리한다. "오늘 한 일 영수증", "작업 영수증", "/daily-receipt:receipt" 요청이나 예약 실행 때만 사용한다. 경비, 지출결의, 카드 영수증 같은 실제 영수증 처리에는 쓰지 않는다.
 ---
 
 # 오늘 한 일 영수증
@@ -24,7 +24,17 @@ Claude Code 대화 기록(~/.claude/projects)에서 그날 한 일을 추려 영
 3. **렌더링**: `python "<스킬폴더>/scripts/render.py" <json경로>` → 같은 폴더에 `YYYY-MM-DD.html`.
 4. **열기**: 대화형 세션이면 브라우저로 연다(Windows `Start-Process "<html경로>"`, macOS `open "<html경로>"`). 인자에 `scheduled-run`이 있으면 예약 실행이다. 이때는 열지 말고 경로만 출력한다(예약 스크립트가 연다).
 5. 사용자에게는 품목 이름만 한 줄씩 짧게 알려 주고 경로를 준다.
-6. `~/.claude/daily-receipt/config.json`이 없고 대화형 세션이면, 끝에 한 줄로 "`/daily-receipt:setup`으로 이름과 자동 실행을 설정할 수 있어요"라고 안내한다.
+6. collect 결과의 sessions가 비었거나 collect.py를 실행할 수 없으면 아래 "Claude Code 기록이 없을 때"로 간다.
+7. `~/.claude/daily-receipt/config.json`이 없고 대화형 세션이면, 끝에 한 줄로 "`/daily-receipt:setup`으로 이름과 자동 실행을 설정할 수 있어요"라고 안내한다.
+
+## Claude Code 기록이 없을 때 (Cowork, 데스크톱 앱 사용자)
+
+Cowork나 데스크톱 앱에서는 ~/.claude/projects가 비어 있거나 볼 수 없을 수 있다. 그때는 이 순서로 재료를 모은다.
+1. 지난 대화나 지난 작업 세션을 검색하는 도구가 있으면 그것으로 그날 대화와 작업을 모은다.
+2. 지금 세션에서 그날 한 일도 포함한다(영수증 요청 자체는 뺀다).
+3. 둘 다 없으면 지어내지 말고 "오늘 한 일을 몇 줄로 적어 주시면 영수증으로 만들어 드릴게요"라고 묻는다. 예약 실행이면 "오늘 볼 수 있는 기록이 없어요"라고만 남긴다.
+
+이 경우 메시지 시각을 알면 minutes(5분 넘는 간격은 5분)로, 모르면 시간을 추측하지 말고 품목마다 `chats`(대화 수)를 쓴다. 영수증은 render.py 대신 `<스킬폴더>/assets/receipt-template.html`의 `id="data"` JSON만 바꿔서 만든다(minutes와 chats를 둘 다 처리한다). 파일로 저장할 수 있으면 `~/Documents/claude-receipts/YYYY-MM-DD.html`, 아니면 HTML 아티팩트나 작업 폴더에 저장해서 보여 준다.
 
 ## 추리기 규칙 (핵심)
 
