@@ -44,7 +44,6 @@ def build_data(r):
         "payments": r.get("payments") or [f"{model_name(m)} / {c:,}회" for m, c in models],
         "items": r["items"],
         "carry_over": r.get("carry_over") or [],
-        "one_liner": r.get("one_liner") or "",
     }
 
 

@@ -7,6 +7,13 @@ description: 오늘 한 일 영수증(daily-receipt)의 첫 설정과 자동 실
 
 `<스킬폴더>`는 이 스킬을 불러올 때 표시되는 Base directory다.
 
+## 먼저 Python 확인
+
+영수증 만들기는 Python 3이 필요하다. 설정 전에 `python --version`(macOS는 `python3 --version`)으로 확인한다.
+- 3.8 이상이면 그대로 진행한다.
+- 없으면 설치를 제안하고, 사용자가 좋다고 하면 설치한다. Windows: `winget install -e --id Python.Python.3.12 --scope user` (관리자 권한 불필요). macOS: `xcode-select --install` 또는 python.org 설치 파일 안내. 설치 뒤 새 터미널에서 다시 확인한다.
+- 사용자가 설치를 원하지 않으면, Python 없이도 템플릿 방식으로 영수증을 만들 수 있지만 자동 실행은 권하지 않는다고 알려 준다.
+
 ## 사용자가 처음 설정할 때
 
 필요한 것은 세 가지뿐이다. 이미 말한 것은 다시 묻지 않는다. 한 번에 묻는다.

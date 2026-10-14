@@ -5,31 +5,35 @@
 
 ## 설치 (2분)
 
-터미널에서 두 줄을 실행합니다.
+> 공식 주소는 **github.com/ugjung/daily-receipt** 하나뿐입니다. 이름이 비슷한 다른 저장소에서는 설치하지 마세요.
+> GitHub 계정은 필요 없습니다.
+
+### Claude 데스크톱 앱
+
+1. **Customize > Plugins**에서 Personal plugins 옆 **+**를 누릅니다.
+2. **Add marketplace > Add from a repository**를 고르고 `ugjung/daily-receipt`를 입력합니다.
+3. **Discover**에서 **daily-receipt**를 찾아 **Add**를 누릅니다.
+4. Cowork에서 "오늘 한 일 영수증"이라고 말하면 됩니다. 매일 받으려면 Cowork의 반복 작업에 "매일 18시 오늘 한 일 영수증"을 등록하세요.
+
+### Claude Code (터미널)
 
 ```
-claude plugin marketplace add <GitHub 저장소 주소>
+claude plugin marketplace add ugjung/daily-receipt
 claude plugin install daily-receipt@mobidays-ax
 ```
 
-그다음 Claude Code 세션을 새로 열고 이렇게 말합니다.
-
-```
-/daily-receipt:setup
-```
-
-이름, 상호(팀), 자동 실행 시각을 물어보면 답하면 끝입니다.
+그다음 Claude Code 세션을 새로 열고 `/daily-receipt:setup`을 입력합니다. 이름, 상호(팀), 자동 실행 시각을 물어보면 답하면 끝입니다.
 
 ## 쓰는 법
 
 | 하고 싶은 것 | 이렇게 말하기 |
 |---|---|
-| 지금 영수증 뽑기 | `/daily-receipt:receipt` 또는 "오늘 한 일 영수증 뽑아줘" |
+| 지금 영수증 뽑기 | "오늘 한 일 영수증 뽑아줘" (Claude Code는 `/daily-receipt:receipt`도 가능) |
 | 지난 날짜 영수증 | "10월 13일 영수증 뽑아줘" |
 | 시각 바꾸기 | "영수증 자동 실행 17시로 바꿔줘" |
 | 자동 실행 끄기 | "영수증 자동 실행 꺼줘" |
 
-영수증 아래 버튼으로 **이미지 저장**(PNG)이나 **텍스트 복사**(Slack에 바로 붙여 넣기)를 할 수 있습니다.
+영수증을 열면 프린터가 나옵니다. **PRINT**를 누르면 영수증이 출력되고, 아래 **텍스트 복사**로 Slack에 바로 붙여 넣을 수 있습니다.
 
 ## 어떻게 만들어지나
 
@@ -45,7 +49,8 @@ claude plugin install daily-receipt@mobidays-ax
 - **밖으로 안 나갑니다.** 영수증은 내 PC에만 저장됩니다. Slack이나 Notion으로 자동으로 올리지 않습니다.
 - **비밀 정보는 가립니다.** 채팅에 붙여 넣은 API 키, 비밀번호, URL, 이메일, 전화번호는 수집 단계에서 가려집니다. 영수증에는 동료 실명이나 금액을 쓰지 않습니다.
 - **자동 실행 권한은 최소한으로.** 예약 실행 때 Claude는 python 스크립트 실행, 파일 읽기, 영수증 폴더에 쓰기만 할 수 있습니다.
-- **가볍습니다.** 플러그인 24KB, 영수증 하루 약 8KB. 다만 자동 실행 때마다 Claude 사용량이 조금(1분 남짓) 듭니다.
+- **설치본만 믿으세요.** 업데이트는 이 저장소 주인만 올릴 수 있습니다. 다른 사람은 저장소를 고칠 수 없고, 누가 설치했는지도 알 수 없습니다.
+- **가볍습니다.** 플러그인 50KB 남짓, 영수증 하루 약 8KB. 다만 자동 실행 때마다 Claude 사용량이 조금(1분 남짓) 듭니다.
 
 ## 지우기
 
@@ -60,6 +65,6 @@ claude plugin uninstall daily-receipt
 
 - Windows: 설정부터 자동 실행까지 모두 지원
 - macOS: 영수증 만들기 지원, 자동 실행은 crontab으로 등록(setup이 안내)
-- Python 3, Claude Code 필요
+- Python 3 필요 (없으면 setup이 설치를 도와줍니다)
 
-문의: 모비데이즈 AX팀
+문의: 모비데이즈 AX팀 (사내 메신저)

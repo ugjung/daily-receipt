@@ -6,13 +6,47 @@
 <title>오늘 한 일 영수증</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nanum+Gothic+Coding:wght@400;700&display=swap">
 <style>
-/* 흑백 감열지 영수증 한 장. 위아래는 핑킹가위로 자른 톱니. */
-:root{--bg:#f4f3ef;--paper:#ffffff;--ink:#1a1a1a;--sub:#777777;--line:#999999;--soft:#555555;--track:#dddddd}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#1d1f22;color-scheme:dark}}
-:root[data-theme="dark"]{--bg:#1d1f22;color-scheme:dark}
+/* 감열지 영수증 한 장. 위아래는 핑킹가위 톱니. 색은 검정 글자에 주황 포인트 하나만. */
+:root{--bg:#f3f1ee;--fg:#1c1a19;--fg-sub:#7d7873;--paper:#ffffff;--ink:#1c1a19;--sub:#7d7873;--line:#a8a29c;--soft:#57524d;--track:#ebe7e3;--brand:#e4572e;--brand-soft:#f8d9cd;--machine:#2b2725;--machine-top:#3a3431;--machine-edge:#151210;--machine-text:#a39d97;--glow:rgba(228,87,46,.10)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#1d1f22;--fg:#ece8e4;--fg-sub:#a39d97;--machine:#3a3532;--machine-top:#4a4440;--machine-edge:#0f0d0c;--glow:rgba(228,87,46,.14);color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#1d1f22;--fg:#ece8e4;--fg-sub:#a39d97;--machine:#3a3532;--machine-top:#4a4440;--machine-edge:#0f0d0c;--glow:rgba(228,87,46,.14);color-scheme:dark}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:'Nanum Gothic Coding','D2Coding',Consolas,monospace;display:flex;flex-direction:column;align-items:center;padding:40px 16px 48px}
-.stage{width:100%;max-width:400px;filter:drop-shadow(0 6px 14px rgba(0,0,0,.14))}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:'Nanum Gothic Coding','D2Coding',Consolas,monospace;display:flex;flex-direction:column;align-items:center;padding:max(56px,14vh) 16px 48px;min-height:100vh;background-image:radial-gradient(circle at 50% max(140px,24vh),var(--glow),transparent 340px)}
+
+/* 도착 화면: 오늘 요약 + 프린터 + 슬롯에 살짝 걸린 영수증. 누르면 위에서부터 한 칸씩 펼쳐진다 */
+.intro{text-align:center;margin-bottom:22px}
+.eyebrow{font-size:11px;letter-spacing:.24em;color:var(--brand);margin:0 0 10px}
+.hello{font-size:22px;font-weight:700;margin:0 0 8px;word-break:keep-all}
+.summary{font-size:13px;color:var(--fg-sub);margin:0;word-break:keep-all}
+.summary b{color:var(--fg)}
+.printer{position:relative;z-index:2;display:block;width:100%;max-width:436px;height:86px;padding:0;border:0;border-radius:16px 16px 12px 12px;background:linear-gradient(180deg,var(--machine-top),var(--machine) 55%);box-shadow:0 6px 0 var(--machine-edge),0 16px 30px rgba(0,0,0,.2);cursor:pointer;font-family:inherit;color:var(--machine-text);transition:transform .12s}
+.printer:hover{transform:translateY(-1px)}
+.printer:active{transform:translateY(3px);box-shadow:0 3px 0 var(--machine-edge),0 10px 20px rgba(0,0,0,.2)}
+.printer:focus-visible{outline:2px solid var(--brand);outline-offset:5px}
+.ptag{position:absolute;left:20px;top:16px;font-size:10px;letter-spacing:.22em;text-align:left;line-height:1.6}
+.ptag small{display:block;font-size:9px;letter-spacing:.12em;opacity:.6}
+.led{position:absolute;left:20px;bottom:30px;width:7px;height:7px;border-radius:50%;background:var(--brand);box-shadow:0 0 8px var(--brand);animation:blink 1.1s ease-in-out infinite}
+.pbtn{position:absolute;right:18px;top:15px;padding:6px 14px;border-radius:999px;background:var(--brand);color:#fff;font-size:11px;font-weight:700;letter-spacing:.18em}
+.pbtn:after{content:"";position:absolute;inset:-5px;border-radius:999px;border:2px solid var(--brand);opacity:0;animation:ring 1.8s ease-out infinite}
+.slot{position:absolute;left:14px;right:14px;bottom:10px;height:8px;border-radius:4px;background:var(--machine-edge);box-shadow:inset 0 2px 3px rgba(0,0,0,.6)}
+.feed{position:relative;width:100%;max-width:436px;margin-top:-18px;padding:0 18px;height:96px;overflow:hidden;transition:height 2.6s steps(16,end);-webkit-mask-image:linear-gradient(#000 55%,transparent);mask-image:linear-gradient(#000 55%,transparent)}
+.stage{width:100%;max-width:400px;margin:0 auto 30px;filter:drop-shadow(0 6px 14px rgba(0,0,0,.14))}
+.actions{visibility:hidden;opacity:0;transition:opacity .4s}
+.tip{margin:6px 0 0;font-size:12px;color:var(--fg-sub);letter-spacing:.04em}
+body.printing .tip,body.printed .tip{display:none}
+body.printing .feed,body.printed .feed{-webkit-mask-image:none;mask-image:none}
+body.printing .led{animation:blink .22s linear infinite}
+body.printing .pbtn:after,body.printed .pbtn:after{animation:none}
+body.printed .feed{height:auto}
+body.printed .stage{animation:settle .5s ease-out}
+body.printed .led{animation:none;opacity:.35;box-shadow:none}
+body.printed .pbtn{opacity:.45}
+body.printed .actions{visibility:visible;opacity:1}
+body.printed .printer{cursor:default}
+@keyframes settle{0%{transform:none}35%{transform:translateY(3px) rotate(.5deg)}70%{transform:translateY(1px) rotate(-.25deg)}100%{transform:none}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+@keyframes ring{0%{opacity:.7;transform:scale(.9)}100%{opacity:0;transform:scale(1.35)}}
+@media (prefers-reduced-motion:reduce){.feed{transition:none}.led,.pbtn:after,body.printed .stage{animation:none}}
 .paper{position:relative;background:var(--paper);color:var(--ink);padding:28px 22px 22px;font-size:13px;line-height:1.5;margin:10px 0}
 /* 핑킹가위 톱니: 종이색 삼각형을 위아래로 반복한다. 종이는 두 테마 모두 흰색. */
 .paper:before,.paper:after{content:"";position:absolute;left:0;right:0;height:8px;background-repeat:repeat-x;background-size:14px 8px}
@@ -34,15 +68,16 @@ h1{text-align:center;font-size:24px;letter-spacing:.35em;margin:0 0 2px}
 .lead{flex:1;border-bottom:1px dotted var(--line);min-width:12px;transform:translateY(-3px)}
 .amt{white-space:nowrap;font-weight:700;font-variant-numeric:tabular-nums}
 .item{margin-bottom:11px}
-.item.in{padding-left:10px;border-left:2px solid var(--ink);margin-left:2px}
+.item.in{padding-left:10px;border-left:2px solid var(--brand-soft);margin-left:2px}
 .done{color:var(--soft);font-size:11.5px;padding-left:22px;word-break:keep-all;margin-top:1px}
 .bar{margin:4px 0 0 22px;height:3px;background:repeating-linear-gradient(90deg,var(--track) 0 2px,transparent 2px 4px)}
-.bar i{display:block;height:100%;background:var(--ink)}
+.bar i{display:block;height:100%;background:var(--brand)}
 .group{display:flex;align-items:baseline;gap:6px;margin:16px 0 8px;font-size:12px}
 .group:first-child{margin-top:0}
-.gname{background:var(--ink);color:var(--paper);padding:1px 7px;font-weight:700}
+.gname{background:var(--brand);color:var(--paper);padding:1px 7px;font-weight:700}
 .gsum{color:var(--sub);white-space:nowrap}
 .total{display:flex;justify-content:space-between;font-size:18px;font-weight:700;margin:4px 0}
+.total span:last-child{color:var(--brand)}
 .sec{text-align:center;font-weight:700;margin:4px 0 6px}
 .carry{font-size:12px;word-break:keep-all}
 .memo{text-align:center;font-size:14px;font-weight:700;margin:8px 0;word-break:keep-all}
@@ -76,8 +111,11 @@ pre#plain{display:none;max-width:400px;width:100%;white-space:pre-wrap;backgroun
 }
 </script>
 
-<div class="stage"><div class="paper" id="receipt"></div></div>
-<div class="actions"><button type="button" id="save" hidden>이미지로 저장</button><button type="button" class="ghost" id="cp">텍스트 복사</button></div>
+<div class="intro"><p class="eyebrow" id="eyebrow"></p><p class="hello" id="hello">오늘의 영수증이 도착했어요</p><p class="summary" id="summary"></p></div>
+<button type="button" class="printer" id="printer" aria-label="영수증 출력하기"><span class="ptag">TODAY'S RECEIPT<small>THERMAL TD-01</small></span><span class="pbtn">PRINT</span><span class="led"></span><span class="slot"></span></button>
+<div class="feed"><div class="stage" id="stage"><div class="paper" id="receipt"></div></div></div>
+<p class="tip">PRINT를 누르면 영수증이 나와요</p>
+<div class="actions" id="actions"><button type="button" id="save" hidden>이미지로 저장</button><button type="button" class="ghost" id="cp">텍스트 복사</button></div>
 <pre id="plain"></pre>
 
 <script>
@@ -137,12 +175,11 @@ pre#plain{display:none;max-width:400px;width:100%;white-space:pre-wrap;backgroun
     (approval ? '<div class="kv"><span>승인번호</span><span>'+esc(approval)+'</span></div>' : '')+
     '<div class="hr"></div>'+
     (carry.length ? '<div class="sec">** 내일로 이월 (적립 예정) **</div>'+carry.map(function(c){ return '<div class="carry">- '+esc(c)+'</div>'; }).join('')+'<div class="hr"></div>' : '')+
-    (r.one_liner ? '<div class="memo">"'+esc(r.one_liner)+'"</div>' : '')+
     '<div class="barcode"></div><div class="code">'+esc(approval)+'</div>'+
     '<div class="foot">'+(hasMin?'※ 사용시간은 Claude와 대화한 시간 기준<br>':'')+'교환 및 환불 불가. 오늘도 수고하셨습니다.</div>';
 
   var plain = ['🧾 오늘 한 일 영수증  '+r.date+'('+r.weekday+')', [r.store, r.customer].filter(Boolean).join(' / '), '----------------------------']
-    .concat(text, ['----------------------------', (hasMin?'총 사용시간  ':'총 대화 수  ')+fmt(total)], carry.map(function(c){ return '이월  '+c; }), r.one_liner ? ['"'+r.one_liner+'"'] : [])
+    .concat(text, ['----------------------------', (hasMin?'총 사용시간  ':'총 대화 수  ')+fmt(total)], carry.map(function(c){ return '이월  '+c; }))
     .join('\n');
 
   var cp = document.getElementById('cp'), pre = document.getElementById('plain');
@@ -160,6 +197,36 @@ pre#plain{display:none;max-width:400px;width:100%;white-space:pre-wrap;backgroun
       function go(){ html2canvas(document.getElementById('receipt'), {scale: 2, backgroundColor: null}).then(function(c){ var a = document.createElement('a'); a.download = '영수증_'+r.date+'.png'; a.href = c.toDataURL(); a.click(); }); }
       if (window.html2canvas) return go();
       var s = document.createElement('script'); s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'; s.onload = go; document.head.appendChild(s);
+    });
+  }
+
+  // 도착 화면 → 출력 애니메이션. 움직임 줄이기 설정이면 바로 보여 준다.
+  var body = document.body, printer = document.getElementById('printer'), stage = document.getElementById('stage'),
+      feed = document.querySelector('.feed'), hello = document.getElementById('hello');
+  var d = new Date(r.date + 'T00:00:00');
+  document.getElementById('eyebrow').textContent = (d.getMonth()+1) + '월 ' + d.getDate() + '일 ' + r.weekday + '요일';
+  document.getElementById('summary').innerHTML = items.length
+    ? '오늘 Claude와 <b>' + esc(fmt(total)) + '</b> 동안 <b>' + items.length + '가지</b> 일을 했어요'
+    : '오늘은 기록된 일이 없어요';
+
+  function finish(){
+    body.classList.remove('printing'); body.classList.add('printed');
+    feed.style.height = '';
+    hello.textContent = '오늘도 수고하셨습니다';
+  }
+  if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    finish();
+  } else {
+    printer.addEventListener('click', function(){
+      if (body.classList.contains('printing') || body.classList.contains('printed')) return;
+      body.classList.add('printing');
+      hello.textContent = '출력 중...';
+      feed.addEventListener('transitionend', function once(e){
+        if (e.propertyName !== 'height') return;
+        feed.removeEventListener('transitionend', once);
+        finish();
+      });
+      feed.style.height = (stage.offsetHeight + 34) + 'px';
     });
   }
 })();
