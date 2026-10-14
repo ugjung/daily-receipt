@@ -19,7 +19,7 @@ Claude Code 대화 기록(~/.claude/projects)에서 그날 한 일을 추려 영
 ## 순서
 
 1. **수집**: `python "<스킬폴더>/scripts/collect.py" [YYYY-MM-DD]`
-   날짜를 안 주면 오늘(KST). 세션마다 제목과 요청(prompts) 목록이 나온다. 요청 하나하나에 시각(time), 그 요청 뒤로 이어진 작업 분(min), 그 사이 수정한 파일(files)이 붙어 있다. 맨 위 `models`는 그날 쓴 모델별 응답 수.
+   날짜를 안 주면 오늘(KST). 세션마다 제목과 요청(prompts) 목록이 나온다. 요청 하나하나에 시각(time), 그 요청 뒤로 이어진 작업 분(min), 그 사이 수정한 파일(files)이 붙어 있다. 여러 창을 동시에 쓴 시간은 그때 돌던 요청들끼리 나눠서 셌기 때문에, 모든 min을 더하면 total_active_min(겹침 없이 실제로 쓴 시간)과 같다. 맨 위 `models`는 그날 쓴 모델별 응답 수.
 2. **추리기**: 아래 규칙으로 영수증 JSON을 쓴다. 저장 위치는 `~/Documents/claude-receipts/YYYY-MM-DD.json`.
 3. **렌더링**: `python "<스킬폴더>/scripts/render.py" <json경로>` → 같은 폴더에 `YYYY-MM-DD.html`.
 4. **열기**: 대화형 세션이면 브라우저로 연다(Windows `Start-Process "<html경로>"`, macOS `open "<html경로>"`). 인자에 `scheduled-run`이 있으면 예약 실행이다. 이때는 열지 말고 경로만 출력한다(예약 스크립트가 연다).

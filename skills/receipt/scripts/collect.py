@@ -87,15 +87,17 @@ def scan(path, day):
             times.append(k)
             cwd = d.get("cwd") or cwd
             msg = d.get("message") or {}
-            if prev and segs:
-                segs[-1]["min"] += max(0.0, min((k - prev).total_seconds() / 60, GAP_CAP_MIN))
+            if prev and segs and k > prev:
+                # 이 요청이 차지한 시간 구간. 5분 넘게 비면 5분까지만 인정한다.
+                end = min(k, prev + dt.timedelta(minutes=GAP_CAP_MIN))
+                segs[-1]["iv"].append((prev, end))
             prev = k
             if t == "user" and not d.get("isMeta"):
                 raw = user_text(msg).strip()
                 if raw and not raw.startswith(SKIP_PREFIX):
                     p = clean_prompt(raw)
                     if p:
-                        segs.append({"time": f"{k:%H:%M}", "min": 0.0, "text": p, "files": []})
+                        segs.append({"time": f"{k:%H:%M}", "min": 0.0, "text": p, "files": [], "iv": []})
             elif t == "assistant":
                 if msg.get("model") and not msg["model"].startswith("<"):
                     models[msg["model"]] += 1
@@ -115,7 +117,6 @@ def scan(path, day):
     if all("daily-receipt" in s["text"] or "영수증" in s["text"] for s in segs) and any("daily-receipt" in s["text"] for s in segs):
         return None  # 영수증 생성 세션 자체는 제외
     for s in segs:
-        s["min"] = round(s["min"])
         if not s["files"]:
             del s["files"]
     times.sort()
@@ -125,9 +126,9 @@ def scan(path, day):
         "cwd": cwd.replace(HOME, "~") if cwd else None,
         "start": f"{times[0]:%H:%M}",
         "end": f"{times[-1]:%H:%M}",
-        "active_min": max(1, sum(s["min"] for s in segs)),
+        "active_min": 0,
         "turns": len(segs),
-        "prompts": segs[:80],
+        "prompts": segs,
         "files_edited": files[:40],
         "tools": dict(tools.most_common(8)),
         "models": dict(models),
@@ -146,6 +147,44 @@ def memory_changes(day):
     return out
 
 
+def allocate(sessions):
+    """여러 창이 동시에 돌던 시간은 한 번만 센다.
+
+    겹친 구간은 그때 돌던 요청들끼리 똑같이 나눠 갖는다. 그래서 모든 요청의 분을 더하면
+    그날 실제로 Claude를 쓴 시간(겹침 제거)과 같아진다.
+    """
+    events = []
+    for si, s in enumerate(sessions):
+        for gi, g in enumerate(s["prompts"]):
+            for a, b in g.pop("iv"):
+                events.append((a, 1, (si, gi)))
+                events.append((b, -1, (si, gi)))
+    events.sort(key=lambda e: (e[0], e[1]))
+    active, last, union = {}, None, 0.0
+    alloc = collections.defaultdict(float)
+    for t, kind, key in events:
+        if last is not None and active and t > last:
+            span = (t - last).total_seconds() / 60
+            union += span
+            for k in active:
+                alloc[k] += span / len(active)
+        last = t
+        if kind == 1:
+            active[key] = active.get(key, 0) + 1
+        else:
+            active[key] -= 1
+            if not active[key]:
+                del active[key]
+    raw = 0
+    for si, s in enumerate(sessions):
+        for gi, g in enumerate(s["prompts"]):
+            g["min"] = round(alloc[(si, gi)])
+        s["active_min"] = max(1, sum(g["min"] for g in s["prompts"]))
+        s["prompts"] = s["prompts"][:80]
+        raw += s["active_min"]
+    return round(union)
+
+
 def main():
     day = dt.date.fromisoformat(sys.argv[1]) if len(sys.argv) > 1 else dt.datetime.now(KST).date()
     cutoff = dt.datetime.combine(day, dt.time(), KST).timestamp()
@@ -157,11 +196,12 @@ def main():
         if s:
             sessions.append(s)
     sessions.sort(key=lambda s: s["start"])
+    total = allocate(sessions)
     result = {
         "date": day.isoformat(),
         "weekday": "월화수목금토일"[day.weekday()],
         "session_count": len(sessions),
-        "total_active_min": sum(s["active_min"] for s in sessions),
+        "total_active_min": total,  # 겹치는 시간은 한 번만 센 실제 사용시간
         "models": dict(sum((collections.Counter(s["models"]) for s in sessions), collections.Counter())),
         "memory_updates": memory_changes(day),
         "sessions": sessions,

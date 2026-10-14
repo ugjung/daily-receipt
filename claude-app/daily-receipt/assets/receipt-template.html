@@ -13,28 +13,28 @@
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--fg);font-family:'Nanum Gothic Coding','D2Coding',Consolas,monospace;display:flex;flex-direction:column;align-items:center;padding:max(56px,14vh) 16px 48px;min-height:100vh;background-image:radial-gradient(circle at 50% max(140px,24vh),var(--glow),transparent 340px)}
 
-/* 도착 화면: 오늘 요약 + 프린터 + 슬롯에 살짝 걸린 영수증. 누르면 위에서부터 한 칸씩 펼쳐진다 */
+/* 도착 화면: 오늘 요약 + 프린터 위로 살짝 나온 영수증 끝. 출력을 누르면 종이가 프린터에서 위로 밀려 올라온다 */
 .intro{text-align:center;margin-bottom:22px}
 .eyebrow{font-size:11px;letter-spacing:.24em;color:var(--brand);margin:0 0 10px}
 .hello{font-size:22px;font-weight:700;margin:0 0 8px;word-break:keep-all}
 .summary{font-size:13px;color:var(--fg-sub);margin:0;word-break:keep-all}
 .summary b{color:var(--fg)}
-.printer{position:relative;z-index:2;display:block;width:100%;max-width:436px;height:86px;padding:0;border:0;border-radius:16px 16px 12px 12px;background:linear-gradient(180deg,var(--machine-top),var(--machine) 55%);box-shadow:0 6px 0 var(--machine-edge),0 16px 30px rgba(0,0,0,.2);cursor:pointer;font-family:inherit;color:var(--machine-text);transition:transform .12s,opacity .4s,height .5s ease .1s,box-shadow .3s}
+.feed{position:relative;z-index:1;width:100%;max-width:436px;margin-bottom:-22px;padding:0 18px;height:92px;overflow:hidden}
+.stage{width:100%;max-width:400px;margin:0 auto 30px;filter:drop-shadow(0 6px 14px rgba(0,0,0,.14))}
+.printer{position:relative;z-index:2;display:block;width:100%;max-width:436px;height:86px;padding:0;border:0;border-radius:12px 12px 16px 16px;background:linear-gradient(180deg,var(--machine-top),var(--machine) 45%);box-shadow:0 6px 0 var(--machine-edge),0 16px 30px rgba(0,0,0,.2);cursor:pointer;font-family:inherit;color:var(--machine-text);transition:transform .12s,opacity .35s,height .45s ease .05s,box-shadow .3s}
 .printer:hover{transform:translateY(-1px)}
 .printer:active{transform:translateY(3px);box-shadow:0 3px 0 var(--machine-edge),0 10px 20px rgba(0,0,0,.2)}
 .printer:focus-visible{outline:2px solid var(--brand);outline-offset:5px}
-.ptag{position:absolute;left:20px;top:16px;font-size:10px;letter-spacing:.22em;text-align:left;line-height:1.6}
-.ptag small{display:block;font-size:9px;letter-spacing:.12em;opacity:.6}
-.led{position:absolute;left:20px;bottom:30px;width:7px;height:7px;border-radius:50%;background:var(--brand);box-shadow:0 0 8px var(--brand);animation:blink 1.1s ease-in-out infinite}
-.pbtn{position:absolute;right:18px;top:15px;padding:6px 14px;border-radius:999px;background:var(--brand);color:#fff;font-size:11px;font-weight:700;letter-spacing:.18em}
+.slot{position:absolute;left:14px;right:14px;top:12px;height:8px;border-radius:4px;background:var(--machine-edge);box-shadow:inset 0 2px 3px rgba(0,0,0,.6)}
+.ptag{position:absolute;left:20px;bottom:16px;font-size:12px;font-weight:700;letter-spacing:.06em;text-align:left;line-height:1.4}
+.ptag small{display:block;font-size:10px;font-weight:400;opacity:.6}
+.led{position:absolute;right:104px;bottom:24px;width:7px;height:7px;border-radius:50%;background:var(--brand);box-shadow:0 0 8px var(--brand);animation:blink 1.1s ease-in-out infinite}
+.pbtn{position:absolute;right:18px;bottom:15px;padding:7px 16px;border-radius:999px;background:var(--brand);color:#fff;font-size:13px;font-weight:700;letter-spacing:.1em}
 .pbtn:after{content:"";position:absolute;inset:-5px;border-radius:999px;border:2px solid var(--brand);opacity:0;animation:ring 1.8s ease-out infinite}
-.slot{position:absolute;left:14px;right:14px;bottom:10px;height:8px;border-radius:4px;background:var(--machine-edge);box-shadow:inset 0 2px 3px rgba(0,0,0,.6)}
-.feed{position:relative;width:100%;max-width:436px;margin-top:-18px;padding:0 18px;height:96px;overflow:hidden;transition:height 2.6s steps(16,end),margin-top .5s ease .1s;-webkit-mask-image:linear-gradient(#000 55%,transparent);mask-image:linear-gradient(#000 55%,transparent)}
-.stage{width:100%;max-width:400px;margin:0 auto 30px;filter:drop-shadow(0 6px 14px rgba(0,0,0,.14))}
 .actions{visibility:hidden;opacity:0;transition:opacity .4s}
-.tip{margin:6px 0 0;font-size:12px;color:var(--fg-sub);letter-spacing:.04em}
+.tip{margin:14px 0 0;font-size:12px;color:var(--fg-sub);letter-spacing:.04em}
 body.printing .tip,body.printed .tip{display:none}
-body.printing .feed,body.printed .feed{-webkit-mask-image:none;mask-image:none}
+body.printing .printer{animation:hum .09s linear infinite}
 body.printing .led{animation:blink .22s linear infinite}
 body.printing .pbtn:after,body.printed .pbtn:after{animation:none}
 body.printed .feed{height:auto}
@@ -43,45 +43,47 @@ body.printed .led{animation:none;opacity:.35;box-shadow:none}
 body.printed .pbtn{opacity:.45}
 body.printed .actions{visibility:visible;opacity:1}
 body.printed .printer{cursor:default}
-body.gone .printer{opacity:0;height:0;overflow:hidden;box-shadow:none;transform:translateY(-14px);pointer-events:none}
-body.gone .feed{margin-top:8px}
-@keyframes settle{0%{transform:none}35%{transform:translateY(3px) rotate(.5deg)}70%{transform:translateY(1px) rotate(-.25deg)}100%{transform:none}}
+body.gone .printer{opacity:0;height:0;overflow:hidden;box-shadow:none;transform:translateY(10px);pointer-events:none}
+body.gone .feed{margin-bottom:0}
+@keyframes hum{0%,100%{transform:translateX(0)}50%{transform:translateX(.6px)}}
+@keyframes settle{0%{transform:none}35%{transform:translateY(-3px) rotate(-.4deg)}70%{transform:translateY(-1px) rotate(.2deg)}100%{transform:none}}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
 @keyframes ring{0%{opacity:.7;transform:scale(.9)}100%{opacity:0;transform:scale(1.35)}}
-@media (prefers-reduced-motion:reduce){.feed,.printer{transition:none}.led,.pbtn:after,body.printed .stage{animation:none}}
-.paper{position:relative;background:var(--paper);color:var(--ink);padding:28px 22px 22px;font-size:13px;line-height:1.5;margin:10px 0}
+@media (prefers-reduced-motion:reduce){.feed,.printer{transition:none}.led,.pbtn:after,body.printed .stage,body.printing .printer{animation:none}}
+.paper{position:relative;background:var(--paper);color:var(--ink);padding:30px 26px 24px;font-size:13.5px;line-height:1.55;margin:10px 0}
 /* 핑킹가위 톱니: 종이색 삼각형을 위아래로 반복한다. 종이는 두 테마 모두 흰색. */
 .paper:before,.paper:after{content:"";position:absolute;left:0;right:0;height:8px;background-repeat:repeat-x;background-size:14px 8px}
 .paper:before{top:-8px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='8'%3E%3Cpath d='M0 8L7 0L14 8Z' fill='%23ffffff'/%3E%3C/svg%3E")}
 .paper:after{bottom:-8px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='8'%3E%3Cpath d='M0 0L7 8L14 0Z' fill='%23ffffff'/%3E%3C/svg%3E")}
-h1{text-align:center;font-size:24px;letter-spacing:.35em;margin:0 0 2px}
-.tag{text-align:center;color:var(--sub);font-size:11px;letter-spacing:.2em;margin-bottom:14px}
-.hr{border-top:1px dashed var(--line);margin:10px 0}
-.hr2{border-top:2px solid var(--ink);margin:10px 0}
-.kv{display:flex;justify-content:space-between;gap:10px}
+/* 머리: 실제 카드 영수증처럼 상호가 맨 위, 그 아래 발행 정보, 그다음 [문서 이름] */
+.store{text-align:center;font-size:20px;font-weight:700;margin:0;word-break:keep-all}
+.meta{text-align:center;color:var(--sub);font-size:12px;margin:6px 0 0;line-height:1.6}
+.doc{text-align:center;font-weight:700;font-size:14px;margin:14px 0 0;padding:8px 0;border-top:1px dashed var(--line);border-bottom:1px dashed var(--line)}
+.hr{border-top:1px dashed var(--line);margin:14px 0}
+.hr2{border-top:2px solid var(--ink);margin:14px 0}
+.kv{display:flex;justify-content:space-between;gap:10px;margin:2px 0}
 .kv span:first-child{color:var(--sub);white-space:nowrap}
 .kv span:last-child{text-align:right;font-variant-numeric:tabular-nums}
-.head{display:flex;justify-content:space-between;font-weight:700;border-bottom:1px solid var(--ink);padding-bottom:4px;margin-bottom:12px}
+.head{display:flex;justify-content:space-between;color:var(--sub);font-size:12px;margin:16px 0 14px;padding-bottom:6px;border-bottom:1px solid var(--ink)}
 .row{display:flex;align-items:baseline;gap:6px}
-.no{color:var(--sub);font-size:11px}
-.kind{font-size:10px;border:1px solid var(--ink);padding:0 4px;line-height:15px;white-space:nowrap;align-self:center}
+.no{color:var(--sub);font-size:11px;width:18px;flex:none}
+.kind{color:var(--sub);font-size:12px;white-space:nowrap}
 .name{font-weight:700;word-break:keep-all;min-width:0}
-.main{font-size:9px;background:var(--ink);color:var(--paper);padding:0 4px;line-height:14px;letter-spacing:.08em;align-self:center}
-.lead{flex:1;border-bottom:1px dotted var(--line);min-width:12px;transform:translateY(-3px)}
+.star{color:var(--brand);font-size:12px}
+.lead{flex:1;border-bottom:1px dotted var(--line);min-width:12px;transform:translateY(-4px)}
 .amt{white-space:nowrap;font-weight:700;font-variant-numeric:tabular-nums}
-.item{margin-bottom:11px}
-.item.in{padding-left:10px;border-left:2px solid var(--brand-soft);margin-left:2px}
-.done{color:var(--soft);font-size:11.5px;padding-left:22px;word-break:keep-all;margin-top:1px}
-.bar{margin:4px 0 0 22px;height:3px;background:repeating-linear-gradient(90deg,var(--track) 0 2px,transparent 2px 4px)}
+.item{margin-bottom:15px}
+.item.in{padding-left:12px}
+.done{color:var(--soft);font-size:12.5px;padding-left:24px;word-break:keep-all;margin-top:3px;line-height:1.5}
+.bar{margin:6px 0 0 24px;height:2px;background:var(--track)}
 .bar i{display:block;height:100%;background:var(--brand)}
-.group{display:flex;align-items:baseline;gap:6px;margin:16px 0 8px;font-size:12px}
-.group:first-child{margin-top:0}
-.gname{background:var(--brand);color:var(--paper);padding:1px 7px;font-weight:700}
-.gsum{color:var(--sub);white-space:nowrap}
-.total{display:flex;justify-content:space-between;font-size:18px;font-weight:700;margin:4px 0}
-.total span:last-child{color:var(--brand)}
-.sec{text-align:center;font-weight:700;margin:4px 0 6px}
-.carry{font-size:12px;word-break:keep-all}
+.group{display:flex;align-items:baseline;gap:8px;margin:22px 0 10px;font-size:13px;font-weight:700;color:var(--brand)}
+.group:first-of-type{margin-top:0}
+.gsum{white-space:nowrap;font-variant-numeric:tabular-nums}
+.total{display:flex;justify-content:space-between;align-items:baseline;font-size:15px;font-weight:700;margin:6px 0 10px}
+.total span:last-child{color:var(--brand);font-size:22px}
+.sec{text-align:center;font-weight:700;margin:4px 0 8px}
+.carry{font-size:12.5px;word-break:keep-all;margin:3px 0}
 .memo{text-align:center;font-size:14px;font-weight:700;margin:8px 0;word-break:keep-all}
 .barcode{height:46px;margin:14px 8px 4px;background:repeating-linear-gradient(90deg,var(--ink) 0 2px,transparent 2px 4px,var(--ink) 4px 5px,transparent 5px 8px,var(--ink) 8px 11px,transparent 11px 12px)}
 .code{text-align:center;font-size:11px;letter-spacing:.3em}
@@ -114,9 +116,9 @@ pre#plain{display:none;max-width:400px;width:100%;white-space:pre-wrap;backgroun
 </script>
 
 <div class="intro"><p class="eyebrow" id="eyebrow"></p><p class="hello" id="hello">오늘의 영수증이 도착했어요</p><p class="summary" id="summary"></p></div>
-<button type="button" class="printer" id="printer" aria-label="영수증 출력하기"><span class="ptag">TODAY'S RECEIPT<small>THERMAL TD-01</small></span><span class="pbtn">PRINT</span><span class="led"></span><span class="slot"></span></button>
 <div class="feed"><div class="stage" id="stage"><div class="paper" id="receipt"></div></div></div>
-<p class="tip">PRINT를 누르면 영수증이 나와요</p>
+<button type="button" class="printer" id="printer" aria-label="영수증 출력하기"><span class="slot"></span><span class="ptag">오늘 한 일<small>영수증 프린터</small></span><span class="led"></span><span class="pbtn">출력</span></button>
+<p class="tip">출력 버튼을 누르면 영수증이 나와요</p>
 <div class="actions" id="actions"><button type="button" id="save" hidden>이미지로 저장</button><button type="button" class="ghost" id="cp">텍스트 복사</button></div>
 <pre id="plain"></pre>
 
@@ -132,6 +134,7 @@ pre#plain{display:none;max-width:400px;width:100%;white-space:pre-wrap;backgroun
   function fmt(n){ return hasMin ? dur(n) : '대화 '+n+'회'; }
   var top = Math.max.apply(null, items.map(weight).concat([1]));
   var approval = r.issued_at || '';
+  var issued = approval.length >= 12 ? approval.slice(8, 10) + ':' + approval.slice(10, 12) : '';
 
   var groups = [], byName = {};
   items.forEach(function(i){ var g = i.group || ''; if(!(g in byName)){ byName[g] = []; groups.push(g); } byName[g].push(i); });
@@ -141,15 +144,15 @@ pre#plain{display:none;max-width:400px;width:100%;white-space:pre-wrap;backgroun
     var members = byName[g], boxed = g && members.length > 1;
     if(boxed){
       var sub = members.reduce(function(a,i){ return a + weight(i); }, 0);
-      html.push('<div class="group"><span class="gname">'+esc(g)+'</span><span class="lead"></span><span class="gsum">소계 '+fmt(sub)+'</span></div>');
+      html.push('<div class="group"><span>'+esc(g)+'</span><span class="lead"></span><span class="gsum">'+fmt(sub)+'</span></div>');
       text.push('■ '+g+'  ('+fmt(sub)+')');
     }
     members.forEach(function(i){
       n++;
       var no = (n<10?'0':'')+n;
       var name = boxed && i.name.indexOf(g) === 0 ? (i.name.slice(g.length).trim() || i.name) : i.name;
-      var kind = i.kind ? '<span class="kind">'+esc(i.kind)+'</span>' : '';
-      var main = weight(i) === top ? '<span class="main">MAIN</span>' : '';
+      var kind = i.kind ? '<span class="kind">['+esc(i.kind)+']</span>' : '';
+      var main = weight(i) === top ? '<span class="star" title="오늘 가장 오래 한 일" aria-label="오늘 가장 오래 한 일">★</span>' : '';
       var pct = Math.max(4, Math.round(weight(i)/top*100));
       html.push('<div class="item'+(boxed?' in':'')+'"><div class="row"><span class="no">'+no+'</span>'+kind+'<span class="name">'+esc(name)+'</span>'+main+'<span class="lead"></span><span class="amt">'+esc(amount(i))+'</span></div>'+
         (i.done ? '<div class="done">'+esc(i.done)+'</div>' : '')+'<div class="bar"><i style="width:'+pct+'%"></i></div></div>');
@@ -165,11 +168,10 @@ pre#plain{display:none;max-width:400px;width:100%;white-space:pre-wrap;backgroun
   var carry = r.carry_over || [];
 
   document.getElementById('receipt').innerHTML =
-    '<h1>영수증</h1><div class="tag">오늘 한 일 / TODAY\'S RECEIPT</div>'+
-    (r.store ? '<div class="kv"><span>상호</span><span>'+esc(r.store)+'</span></div>' : '')+
-    (r.customer ? '<div class="kv"><span>고객</span><span>'+esc(r.customer)+'</span></div>' : '')+
-    '<div class="kv"><span>일시</span><span>'+esc(r.date)+'('+esc(r.weekday)+')</span></div>'+
-    '<div class="hr2"></div><div class="head"><span>품명</span><span>'+(hasMin?'사용시간':'대화 수')+'</span></div>'+
+    '<p class="store">'+esc(r.store || '오늘 한 일')+'</p>'+
+    '<p class="meta">'+(r.customer ? '고객 '+esc(r.customer)+'<br>' : '')+esc(r.date)+' ('+esc(r.weekday)+')'+(issued ? ' '+issued+' 발행' : '')+'</p>'+
+    '<p class="doc">[ 오늘 한 일 영수증 ]</p>'+
+    '<div class="head"><span>품명</span><span>'+(hasMin?'사용시간':'대화 수')+'</span></div>'+
     html.join('')+
     '<div class="hr"></div><div class="kv"><span>품목 수</span><span>'+items.length+'</span></div><div class="hr2"></div>'+
     '<div class="total"><span>'+(hasMin?'총 사용시간':'총 대화 수')+'</span><span>'+esc(fmt(total))+'</span></div>'+
@@ -219,8 +221,11 @@ pre#plain{display:none;max-width:400px;width:100%;white-space:pre-wrap;backgroun
     // 출력이 끝나면 프린터는 접혀 사라지고 영수증만 남는다
     setTimeout(function(){
       body.classList.add('gone');
-      setTimeout(function(){ printer.hidden = true; }, 650);
-    }, reduce ? 0 : 650);
+      setTimeout(function(){
+        printer.hidden = true;
+        if (!reduce) window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 550);
+    }, reduce ? 0 : 600);
   }
   if (reduce) {
     finish();
@@ -229,12 +234,18 @@ pre#plain{display:none;max-width:400px;width:100%;white-space:pre-wrap;backgroun
       if (body.classList.contains('printing') || body.classList.contains('printed')) return;
       body.classList.add('printing');
       hello.textContent = '출력 중...';
-      feed.addEventListener('transitionend', function once(e){
-        if (e.propertyName !== 'height') return;
-        feed.removeEventListener('transitionend', once);
-        finish();
-      });
-      feed.style.height = (stage.offsetHeight + 34) + 'px';
+      // 감열 프린터처럼 한 줄(18px)씩 끊어서 종이를 밀어 올린다. 화면은 같이 내려가서 프린터가 제자리에 있는 것처럼 보인다.
+      var H = stage.offsetHeight + 34, h0 = feed.offsetHeight, y0 = window.scrollY;
+      var dur = Math.max(1800, Math.min(4000, H * 2.2)), LINE = 18, t0 = null;
+      function tick(now){
+        if (t0 === null) t0 = now;
+        var p = Math.min(1, (now - t0) / dur);
+        var h = p < 1 ? h0 + Math.floor((H - h0) * p / LINE) * LINE : H;
+        feed.style.height = h + 'px';
+        window.scrollTo(0, y0 + (h - h0));
+        if (p < 1) requestAnimationFrame(tick); else finish();
+      }
+      requestAnimationFrame(tick);
     });
   }
 })();
