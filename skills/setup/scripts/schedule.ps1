@@ -67,7 +67,7 @@ if ((Test-Path `$stamp) -and `$newest -and (`$newest.LastWriteTime -le (Get-Item
 [Console]::OutputEncoding = [Text.Encoding]::UTF8
 `$OutputEncoding = [Text.Encoding]::UTF8
 Set-Location `$HOME
-& '$claude' -p '/daily-receipt:receipt scheduled-run' --allowedTools 'Bash(python *)' 'Read' 'Glob' 'Edit(~/Documents/claude-receipts/**)' *> `$log
+& '$claude' -p '/daily-receipt:receipt scheduled-run' --allowedTools 'Bash(python *daily-receipt*collect.py*)' 'Bash(python *daily-receipt*render.py*)' 'Read' 'Glob' 'Edit(~/Documents/claude-receipts/**)' *> `$log
 `$html = Join-Path `$HOME "Documents\claude-receipts\`$day.html"
 Set-Content -Path `$stamp -Value (Get-Date -Format o)
 if ($open -and (Test-Path `$html) -and ((Get-Item `$html).LastWriteTime -gt (Get-Date).AddHours(-1))) { Start-Process `$html }

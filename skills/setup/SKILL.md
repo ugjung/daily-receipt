@@ -41,7 +41,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "<스킬폴더>/scripts/sche
 - `~/.claude/daily-receipt/config.json`에 이름, 상호, 시각을 저장한다.
 - `~/.claude/daily-receipt/run.ps1`을 만든다. 정해진 시각에 `claude -p "/daily-receipt:receipt"`를 돌리고, 다 되면 영수증을 브라우저로 연다.
 - 작업 스케줄러에 `ClaudeDailyReceipt` 작업을 현재 사용자 권한으로 등록한다. 관리자 권한은 필요 없다. PC가 꺼져서 놓치면 다음에 켤 때 실행된다.
-- 예약 실행 때 Claude에게 주는 권한은 python 스크립트 실행, 파일 읽기, `Documents/claude-receipts` 안에 쓰기뿐이다.
+- 예약 실행 때 Claude에게 주는 권한은 영수증 스크립트 두 개(collect.py, render.py) 실행, 파일 읽기, `Documents/claude-receipts` 안에 쓰기뿐이다.
 - 실행 기록은 `~/.claude/daily-receipt/logs/`에 남고 30일 지나면 지워진다.
 
 ## macOS
@@ -49,7 +49,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "<스킬폴더>/scripts/sche
 schedule.ps1 대신 crontab 한 줄로 등록한다(예: 평일 18:00). config.json은 직접 JSON으로 쓴다.
 
 ```
-0 18 * * 1-5 cd ~ && $(which claude) -p "/daily-receipt:receipt scheduled-run" --allowedTools "Bash(python3 *)" Read Glob "Edit(~/Documents/claude-receipts/**)" >> ~/.claude/daily-receipt/logs/cron.log 2>&1
+0 18 * * 1-5 cd ~ && $(which claude) -p "/daily-receipt:receipt scheduled-run" --allowedTools "Bash(python3 *daily-receipt*collect.py*)" "Bash(python3 *daily-receipt*render.py*)" Read Glob "Edit(~/Documents/claude-receipts/**)" >> ~/.claude/daily-receipt/logs/cron.log 2>&1
 ```
 
 ## 끝나고

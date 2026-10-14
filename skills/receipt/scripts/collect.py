@@ -26,13 +26,25 @@ def to_kst(ts):
 
 # 영수증에 필요 없는 민감 정보는 수집 단계에서 가린다
 REDACT = [
-    (re.compile(r"(?i)(api[_-]?key|secret|token|password|passwd|pwd|비밀번호|비번|client[_-]?(id|secret))(\W{0,5})\S+"), r"[가림]"),
-    (re.compile(r"(sk|pk|xox[abp]|ghp|gho|AKIA|AIza)[A-Za-z0-9_\-]{10,}"), "[키 가림]"),
-    (re.compile(r"[A-Za-z0-9_\-]{32,}"), "[긴 문자열 가림]"),
+    # "비밀번호는 abc", "password=abc", "api_key: abc" 처럼 이름 뒤에 오는 값
+    (re.compile(r"(?i)(api[_-]?key|secret|token|password|passwd|pwd|비밀번호|비번|패스워드|client[_-]?(?:id|secret))(\s*(?:은|는|이|가|:|=|：)?\s*)\S+"), r"\1\2[가림]"),
+    (re.compile(r"(?i)\bbearer\s+\S+"), "Bearer [가림]"),
+    # 서비스별 키 모양
+    (re.compile(r"\b(?:sk|pk|rk)-[A-Za-z0-9_\-]{10,}"), "[키 가림]"),
+    (re.compile(r"\b(?:ghp|gho|ghu|ghs|github_pat|xox[abpr])_[A-Za-z0-9_]{10,}"), "[키 가림]"),
+    (re.compile(r"\bAKIA[0-9A-Z]{12,}\b"), "[키 가림]"),
+    (re.compile(r"\bAIza[0-9A-Za-z_\-]{20,}"), "[키 가림]"),
+    (re.compile(r"\beyJ[A-Za-z0-9_\-]+\.[A-Za-z0-9_\-]+\.[A-Za-z0-9_\-]*"), "[토큰 가림]"),
+    (re.compile(r"\b[A-Za-z0-9_\-]{32,}\b"), "[긴 문자열 가림]"),
+    # 링크, 연락처, 개인 식별 번호
     (re.compile(r"https?://\S+"), "[링크]"),
     (re.compile(r"[\w.+-]+@[\w-]+\.[\w.]+"), "[이메일]"),
-    (re.compile(r"\d{1,3}(\.\d{1,3}){3}(:\d+)?"), "[IP]"),
-    (re.compile(r"01\d-?\d{3,4}-?\d{4}"), "[전화]"),
+    (re.compile(r"\b\d{1,3}(?:\.\d{1,3}){3}(?::\d+)?\b"), "[IP]"),
+    (re.compile(r"\b\d{6}-?[1-8]\d{6}\b"), "[주민번호]"),
+    (re.compile(r"\b(?:\d{4}[- ]){3}\d{4}\b"), "[카드번호]"),
+    (re.compile(r"\b01[016789]-?\d{3,4}-?\d{4}\b"), "[전화]"),
+    (re.compile(r"\b0\d{1,2}-\d{3,4}-\d{4}\b"), "[전화]"),
+    (re.compile(r"\b\d{3,6}-\d{2,6}-\d{4,8}\b"), "[계좌]"),
 ]
 
 

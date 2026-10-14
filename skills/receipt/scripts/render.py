@@ -61,6 +61,9 @@ def render(r):
 def main():
     with open(sys.argv[1], encoding="utf-8") as f:
         r = json.load(f)
+    # 파일 이름으로 쓰이니 날짜 형식만 허용한다 (영수증 폴더 밖으로 쓰는 것을 막음)
+    if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", str(r.get("date", ""))):
+        raise SystemExit("date는 YYYY-MM-DD 형식이어야 합니다")
     out = sys.argv[2] if len(sys.argv) > 2 else os.path.join(
         os.path.expanduser("~"), "Documents", "claude-receipts", f"{r['date']}.html")
     os.makedirs(os.path.dirname(out), exist_ok=True)
