@@ -19,7 +19,7 @@ body{margin:0;background:var(--bg);color:var(--fg);font-family:'Nanum Gothic Cod
 .hello{font-size:22px;font-weight:700;margin:0 0 8px;word-break:keep-all}
 .summary{font-size:13px;color:var(--fg-sub);margin:0;word-break:keep-all}
 .summary b{color:var(--fg)}
-.printer{position:relative;z-index:2;display:block;width:100%;max-width:436px;height:86px;padding:0;border:0;border-radius:16px 16px 12px 12px;background:linear-gradient(180deg,var(--machine-top),var(--machine) 55%);box-shadow:0 6px 0 var(--machine-edge),0 16px 30px rgba(0,0,0,.2);cursor:pointer;font-family:inherit;color:var(--machine-text);transition:transform .12s}
+.printer{position:relative;z-index:2;display:block;width:100%;max-width:436px;height:86px;padding:0;border:0;border-radius:16px 16px 12px 12px;background:linear-gradient(180deg,var(--machine-top),var(--machine) 55%);box-shadow:0 6px 0 var(--machine-edge),0 16px 30px rgba(0,0,0,.2);cursor:pointer;font-family:inherit;color:var(--machine-text);transition:transform .12s,opacity .4s,height .5s ease .1s,box-shadow .3s}
 .printer:hover{transform:translateY(-1px)}
 .printer:active{transform:translateY(3px);box-shadow:0 3px 0 var(--machine-edge),0 10px 20px rgba(0,0,0,.2)}
 .printer:focus-visible{outline:2px solid var(--brand);outline-offset:5px}
@@ -29,7 +29,7 @@ body{margin:0;background:var(--bg);color:var(--fg);font-family:'Nanum Gothic Cod
 .pbtn{position:absolute;right:18px;top:15px;padding:6px 14px;border-radius:999px;background:var(--brand);color:#fff;font-size:11px;font-weight:700;letter-spacing:.18em}
 .pbtn:after{content:"";position:absolute;inset:-5px;border-radius:999px;border:2px solid var(--brand);opacity:0;animation:ring 1.8s ease-out infinite}
 .slot{position:absolute;left:14px;right:14px;bottom:10px;height:8px;border-radius:4px;background:var(--machine-edge);box-shadow:inset 0 2px 3px rgba(0,0,0,.6)}
-.feed{position:relative;width:100%;max-width:436px;margin-top:-18px;padding:0 18px;height:96px;overflow:hidden;transition:height 2.6s steps(16,end);-webkit-mask-image:linear-gradient(#000 55%,transparent);mask-image:linear-gradient(#000 55%,transparent)}
+.feed{position:relative;width:100%;max-width:436px;margin-top:-18px;padding:0 18px;height:96px;overflow:hidden;transition:height 2.6s steps(16,end),margin-top .5s ease .1s;-webkit-mask-image:linear-gradient(#000 55%,transparent);mask-image:linear-gradient(#000 55%,transparent)}
 .stage{width:100%;max-width:400px;margin:0 auto 30px;filter:drop-shadow(0 6px 14px rgba(0,0,0,.14))}
 .actions{visibility:hidden;opacity:0;transition:opacity .4s}
 .tip{margin:6px 0 0;font-size:12px;color:var(--fg-sub);letter-spacing:.04em}
@@ -43,10 +43,12 @@ body.printed .led{animation:none;opacity:.35;box-shadow:none}
 body.printed .pbtn{opacity:.45}
 body.printed .actions{visibility:visible;opacity:1}
 body.printed .printer{cursor:default}
+body.gone .printer{opacity:0;height:0;overflow:hidden;box-shadow:none;transform:translateY(-14px);pointer-events:none}
+body.gone .feed{margin-top:8px}
 @keyframes settle{0%{transform:none}35%{transform:translateY(3px) rotate(.5deg)}70%{transform:translateY(1px) rotate(-.25deg)}100%{transform:none}}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
 @keyframes ring{0%{opacity:.7;transform:scale(.9)}100%{opacity:0;transform:scale(1.35)}}
-@media (prefers-reduced-motion:reduce){.feed{transition:none}.led,.pbtn:after,body.printed .stage{animation:none}}
+@media (prefers-reduced-motion:reduce){.feed,.printer{transition:none}.led,.pbtn:after,body.printed .stage{animation:none}}
 .paper{position:relative;background:var(--paper);color:var(--ink);padding:28px 22px 22px;font-size:13px;line-height:1.5;margin:10px 0}
 /* 핑킹가위 톱니: 종이색 삼각형을 위아래로 반복한다. 종이는 두 테마 모두 흰색. */
 .paper:before,.paper:after{content:"";position:absolute;left:0;right:0;height:8px;background-repeat:repeat-x;background-size:14px 8px}
@@ -209,12 +211,18 @@ pre#plain{display:none;max-width:400px;width:100%;white-space:pre-wrap;backgroun
     ? '오늘 Claude와 <b>' + esc(fmt(total)) + '</b> 동안 <b>' + items.length + '가지</b> 일을 했어요'
     : '오늘은 기록된 일이 없어요';
 
+  var reduce = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
   function finish(){
     body.classList.remove('printing'); body.classList.add('printed');
     feed.style.height = '';
     hello.textContent = '오늘도 수고하셨습니다';
+    // 출력이 끝나면 프린터는 접혀 사라지고 영수증만 남는다
+    setTimeout(function(){
+      body.classList.add('gone');
+      setTimeout(function(){ printer.hidden = true; }, 650);
+    }, reduce ? 0 : 650);
   }
-  if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  if (reduce) {
     finish();
   } else {
     printer.addEventListener('click', function(){
