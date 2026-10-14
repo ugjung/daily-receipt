@@ -1,0 +1,337 @@
+<title>오늘 한 일 영수증</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Gothic+A1:wght@400;600;800&family=Nanum+Gothic+Coding:wght@400;700&display=swap">
+<style>
+/* Layout: 무인 주문기 한 대. 위는 "어디서 쓰세요?" 큰 선택 버튼 두 개, 아래는 고른 쪽의 주문 내역 영수증이 출력된다. 가운데 정렬. */
+:root{
+  --casing:#dde3e8;      /* 키오스크 본체 */
+  --screen:#f7f9fa;      /* 화면 */
+  --paper:#ffffff;       /* 영수증 종이 */
+  --ink:#1d2329;         /* 글자 */
+  --muted:#5f6973;       /* 보조 글자 */
+  --rule:#c3cbd2;
+  --orange:#e8562a;      /* 영수증 주황 */
+  --orange-deep:#c2431b;
+  --display:'Black Han Sans','Gothic A1',sans-serif;
+  --body:'Gothic A1','Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  --slip:'Nanum Gothic Coding','D2Coding',Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --casing:#1a1f24; --screen:#232a31; --ink:#e9edf0; --muted:#9aa5af; --rule:#3a434c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --casing:#1a1f24; --screen:#232a31; --ink:#e9edf0; --muted:#9aa5af; --rule:#3a434c; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--casing);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.6;padding:40px 16px 56px}
+
+.kiosk{max-width:720px;margin:0 auto;background:var(--screen);border-radius:28px;padding:44px 40px 40px;box-shadow:inset 0 0 0 10px var(--casing),0 0 0 1px var(--rule)}
+@media (max-width:560px){.kiosk{padding:32px 20px 28px;border-radius:20px}}
+
+.top{text-align:center}
+.name{font-weight:800;font-size:15px;color:var(--orange-deep);margin:0 0 10px}
+h1{font-family:var(--display);font-weight:400;font-size:clamp(40px,8vw,64px);line-height:1.05;margin:0;letter-spacing:-.01em}
+.sub{color:var(--muted);margin:14px auto 0;max-width:34em}
+
+/* 선택 버튼 */
+.choose{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:34px 0 0}
+@media (max-width:520px){.choose{grid-template-columns:1fr}}
+.opt{appearance:none;border:0;cursor:pointer;text-align:left;border-radius:18px;padding:22px 22px 20px;font-family:var(--body);color:var(--ink);background:var(--paper);box-shadow:0 0 0 2px var(--rule) inset,0 5px 0 var(--rule);transition:transform .08s,box-shadow .08s}
+.opt:active{transform:translateY(4px);box-shadow:0 0 0 2px var(--rule) inset,0 1px 0 var(--rule)}
+.opt:focus-visible{outline:3px solid var(--orange);outline-offset:4px}
+.opt strong{display:block;font-family:var(--display);font-weight:400;font-size:30px;line-height:1.1;margin-bottom:8px}
+.opt span{display:block;font-size:14.5px;color:var(--muted)}
+.opt[aria-pressed="true"]{background:var(--orange);color:#fff;box-shadow:0 5px 0 var(--orange-deep)}
+.opt[aria-pressed="true"] span{color:#fde3d8}
+.opt[aria-pressed="true"]:active{box-shadow:0 1px 0 var(--orange-deep)}
+.opt em{font-style:normal;font-weight:800}
+
+/* 출력구와 영수증 */
+.slot{height:12px;margin:34px 26px 0;border-radius:6px;background:var(--ink);opacity:.85}
+.slip{margin:-4px 44px 0;position:relative}
+@media (max-width:560px){.slip{margin:-4px 8px 0}.paper{padding:26px 18px 22px}.how,.copybox,.substeps,.open,.mock{margin-left:0}}
+.paper{position:relative;background:var(--paper);color:#1d2329;font-family:var(--slip);font-size:14px;line-height:1.55;padding:32px 30px 28px;filter:drop-shadow(0 10px 16px rgba(29,35,41,.16))}
+.paper:after{content:"";position:absolute;left:0;right:0;bottom:-9px;height:9px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='9'%3E%3Cpath d='M0 0L8 9L16 0Z' fill='%23ffffff'/%3E%3C/svg%3E") repeat-x;background-size:16px 9px}
+.paper.print{animation:feed 1.1s steps(9,end)}
+@keyframes feed{from{clip-path:inset(0 0 100% 0)}to{clip-path:inset(0 0 -12px 0)}}
+@media (prefers-reduced-motion:reduce){.paper.print{animation:none}}
+
+.ph{text-align:center;font-weight:700;font-size:17px;letter-spacing:.3em;margin:0}
+.pm{text-align:center;color:#6d7780;font-size:12.5px;margin:2px 0 14px}
+.dash{border-top:1.5px dashed #9aa4ad;margin:22px 0}
+.line{display:flex;gap:10px;align-items:center;font-weight:700;font-size:16px}
+.line .n{flex:none;width:26px;height:26px;border-radius:50%;background:#1d2329;color:#fff;display:grid;place-items:center;font:800 13px var(--body)}
+.line .dots{flex:1;border-bottom:1.5px dotted #9aa4ad;transform:translateY(-4px);min-width:16px}
+.line .t{white-space:nowrap;font-weight:400;color:#6d7780}
+.how{font-family:var(--body);font-size:14.5px;line-height:1.7;color:#3b444c;margin:10px 0 16px 36px;word-break:keep-all}
+.copybox{display:flex;align-items:center;gap:10px;margin:0 0 16px 36px;border:1.5px solid #1d2329;border-radius:8px;padding:9px 9px 9px 12px;font-size:14px}
+.copybox .txt{flex:1;min-width:0;word-break:keep-all;overflow-wrap:anywhere}
+.copy{flex:none;font:800 13px var(--body);background:#1d2329;color:#fff;border:0;border-radius:6px;padding:7px 12px;cursor:pointer}
+.copy:focus-visible{outline:3px solid var(--orange);outline-offset:2px}
+.copy.done{background:var(--orange)}
+.item+.item{margin-top:30px;padding-top:30px;border-top:1.5px dashed #c3cbd2}
+.substeps{margin:4px 0 20px 36px;padding-left:22px;font-family:var(--body);font-size:14.5px;color:#2b333a;line-height:1.7}
+.substeps li{padding-left:4px;margin-bottom:12px}
+.substeps li::marker{font-weight:800;color:var(--orange-deep)}
+.btn{display:inline-block;font-family:var(--body);font-weight:800;font-size:12.5px;line-height:1.5;background:#eef1f3;border:1px solid #b9c2ca;border-bottom-width:2px;border-radius:6px;padding:0 7px;margin:0 1px;color:#1d2329}
+.how.after{margin-top:20px;font-size:13.5px;color:#5f6973;background:#f3f5f7;border-radius:8px;padding:10px 12px}
+.open{display:block;margin:0 0 22px 36px;text-align:center;font:800 15px var(--body);background:var(--orange);color:#fff;text-decoration:none;border-radius:10px;padding:12px 14px;box-shadow:0 4px 0 var(--orange-deep)}
+.open:active{transform:translateY(3px);box-shadow:0 1px 0 var(--orange-deep)}
+.open:focus-visible{outline:3px solid var(--orange);outline-offset:3px}
+.mock{margin:0 0 0 36px}
+.app{display:grid;grid-template-columns:112px minmax(0,1fr);border:1.5px solid #1d2329;border-radius:10px;overflow:hidden;font-family:var(--body);font-size:12px;background:#fbfcfc}
+@media (max-width:480px){.app{grid-template-columns:minmax(0,1fr)}.side{display:none}}
+.side{background:#eef1f3;padding:10px 6px;display:flex;flex-direction:column;gap:4px;border-right:1px solid #c9d0d6}
+.si{padding:4px 7px;border-radius:5px;color:#4c555e}
+.si.on{background:#fff;color:#1d2329;font-weight:800;box-shadow:0 0 0 2px var(--orange)}
+.si.dim{opacity:.5}
+.main{padding:10px 12px 12px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.mh{display:flex;justify-content:space-between;align-items:center}
+.mh b{font-size:14px}
+.addbtn{position:relative;font-weight:800;background:#1d2329;color:#fff;border-radius:6px;padding:3px 10px;box-shadow:0 0 0 2px #fff,0 0 0 4px var(--orange)}
+.menu{align-self:flex-end;border:1px solid #c9d0d6;border-radius:6px;background:#fff;padding:3px;width:132px}
+.menu div{padding:3px 7px;border-radius:4px;color:#4c555e}
+.menu .hl{background:#fdeee8;color:#1d2329;font-weight:800}
+.dlg{border:1px solid #c9d0d6;border-radius:8px;background:#fff;padding:8px}
+.dt{font-weight:800;margin-bottom:4px}
+.dl{color:#4c555e;margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.field{display:flex;align-items:center;border:1.5px solid var(--orange);border-radius:6px;padding:4px 7px;font-family:var(--slip);font-size:12px;background:#fff}
+.field i{width:1.5px;height:13px;background:#1d2329;margin-left:2px}
+.tabs{display:flex;gap:12px;border-bottom:1px solid #c9d0d6}
+.tb{padding:3px 0;color:#6d7780;display:flex;align-items:center;gap:6px}
+.tb.on{color:#1d2329;font-weight:800;border-bottom:2px solid #1d2329}
+.plug{display:flex;justify-content:space-between;align-items:center;border:1px solid #c9d0d6;border-radius:8px;padding:7px 9px;background:#fff}
+.plug small{display:block;color:#6d7780;font-size:11px}
+.plug .go{font-weight:800;background:#1d2329;color:#fff;border-radius:6px;padding:3px 10px;box-shadow:0 0 0 2px #fff,0 0 0 4px var(--orange)}
+.pin{display:inline-grid;place-items:center;width:17px;height:17px;border-radius:50%;background:var(--orange);color:#fff;font:800 10.5px var(--body);font-style:normal}
+.addbtn .pin{position:absolute;top:-9px;right:-12px}
+.mock figcaption{font-family:var(--body);font-size:12.5px;color:#6d7780;margin-top:8px}
+.total{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-weight:700}
+.total b{font-size:20px;color:var(--orange)}
+.total-note{margin:6px 0 0;font-family:var(--body);font-size:14.5px;color:#3b444c;text-align:right}
+.bc{height:34px;margin:18px 30px 4px;background:repeating-linear-gradient(90deg,#1d2329 0 2px,transparent 2px 4px,#1d2329 4px 5px,transparent 5px 8px,#1d2329 8px 11px,transparent 11px 12px)}
+.thanks{text-align:center;font-size:12.5px;color:#6d7780}
+
+.foot{max-width:720px;margin:28px auto 0;text-align:center;font-size:13.5px;color:var(--muted)}
+.foot b{color:var(--ink);font-weight:600}
+/* 궁금한 점: 평소엔 접혀 있고, 누르면 펼쳐진다 */
+.faq{max-width:720px;margin:44px auto 0}
+.faq h2{font-family:var(--display);font-weight:400;font-size:28px;margin:0 0 14px;text-align:center}
+.faq details{background:var(--screen);border-radius:14px;margin-bottom:10px;box-shadow:0 0 0 1px var(--rule)}
+.faq summary{cursor:pointer;list-style:none;padding:18px 52px 18px 22px;font-weight:800;font-size:16px;position:relative}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary:after{content:"+";position:absolute;right:22px;top:50%;transform:translateY(-50%);font-size:22px;font-weight:400;color:var(--orange-deep)}
+.faq details[open] summary:after{content:"–"}
+.faq summary:focus-visible{outline:3px solid var(--orange);outline-offset:2px;border-radius:14px}
+.ans{padding:0 22px 20px;color:var(--ink);font-size:15px;line-height:1.75}
+.ans p{margin:0 0 12px}
+.ans p:last-child{margin-bottom:0}
+.ans ol,.ans ul{margin:0;padding-left:22px}
+.ans li{margin-bottom:8px}
+.ans b{font-weight:800}
+.ans code{font-family:var(--slip);font-size:13.5px;background:var(--casing);border-radius:5px;padding:1px 6px}
+.mini{display:flex;flex-direction:column;gap:3px;max-width:340px;margin:4px 0 14px;background:#fff;color:#1d2329;font-family:var(--slip);font-size:12.5px;padding:16px 16px 14px;border-radius:2px;box-shadow:0 6px 14px rgba(29,35,41,.12)}
+.mini span{display:flex;gap:6px;align-items:baseline}
+.mini i{flex:1;border-bottom:1.5px dotted #9aa4ad;transform:translateY(-4px)}
+.ms{text-align:center;font-size:15px}
+.mm{justify-content:center;font-weight:700;padding:5px 0;margin:4px 0 6px;border-top:1px dashed #9aa4ad;border-bottom:1px dashed #9aa4ad}
+.mg{color:var(--orange);font-weight:700;margin-top:6px}
+.mr{padding-left:10px}
+.mt{justify-content:space-between;font-weight:700;margin-top:8px;padding-top:8px;border-top:2px solid #1d2329}
+.mt em{font-style:normal;color:var(--orange);font-size:16px}
+</style>
+
+<div class="kiosk">
+  <div class="top">
+    <p class="name">오늘 한 일 영수증</p>
+    <h1>어디서 쓰세요?</h1>
+    <p class="sub">고르면 설치 방법이 영수증으로 나와요. 두 번만 복사해서 보내면, 그다음은 정한 시각마다 알아서 도착해요.</p>
+  </div>
+
+  <div class="choose" role="group" aria-label="쓰는 Claude 고르기">
+    <button class="opt" type="button" data-pick="app" aria-pressed="true"><strong>데스크톱 앱</strong><span>Claude 앱의 Cowork 탭을 써요<br><em>대부분 여기예요</em></span></button>
+    <button class="opt" type="button" data-pick="code" aria-pressed="false"><strong>Claude Code</strong><span>터미널이나 VS Code에서 써요<br>개발 도구를 쓰는 분</span></button>
+  </div>
+
+  <div class="slot" aria-hidden="true"></div>
+  <div class="slip" aria-live="polite">
+    <div class="paper" id="paper"></div>
+  </div>
+</div>
+
+<section class="faq" aria-labelledby="faq-h">
+  <h2 id="faq-h">궁금한 점</h2>
+
+  <details>
+    <summary>어떤 영수증이 오나요?</summary>
+    <div class="ans">
+      <p>그날 Claude와 한 일을 프로젝트별로 묶고, 일마다 걸린 시간을 적은 영수증이에요. 맨 아래에 총 사용시간과 내일로 넘어간 일이 붙어요.</p>
+      <div class="mini" aria-label="영수증 예시">
+        <b class="ms">모비데이즈 AX팀</b>
+        <span class="mm">[ 오늘 한 일 영수증 ]</span>
+        <span class="mg">광고주발굴 <i></i> 4시간 03분</span>
+        <span class="mr">[기획] 기획 재정리 <i></i> 30분</span>
+        <span class="mr">[개발] 네이버 API 첫 수집 ★ <i></i> 1시간 17분</span>
+        <span class="mg">SF-모비사인 <i></i> 1시간 04분</span>
+        <span class="mr">[검수] 매핑 검수 <i></i> 44분</span>
+        <span class="mt">총 사용시간 <em>5시간 07분</em></span>
+      </div>
+      <p>영수증 아래 <b>텍스트 복사</b>를 누르면 Slack에 그대로 붙여 넣을 수 있어요.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>내 대화를 읽는다는데 괜찮나요?</summary>
+    <div class="ans">
+      <p>읽는 건 내가 이미 Claude와 나눈 대화이고, 읽은 내용은 원래 그 대화를 받았던 Claude에게만 다시 가요. 새로 받는 곳은 없어요.</p>
+      <ol>
+        <li>Claude가 원래 저장해 두는 내 대화 기록을 <b>내 PC 안에서</b> 읽어요.</li>
+        <li>비밀번호 같은 민감한 부분은 가리고, 짧게 잘라요.</li>
+        <li>그 요약을 Claude가 보고 영수증 품목을 정리해요.</li>
+        <li>영수증은 <b>내 PC와 내 계정에만</b> 남아요. 어디로도 자동으로 보내지 않아요.</li>
+      </ol>
+    </div>
+  </details>
+
+  <details>
+    <summary>비밀번호나 개인정보는요?</summary>
+    <div class="ans">
+      <p>대화에 붙여 넣은 비밀번호, API 키, 로그인 토큰, 링크, 이메일, 전화번호, 주민번호, 카드번호, 계좌번호는 읽는 단계에서 <b>[가림]</b>으로 바뀌어요. 영수증에는 동료 실명과 금액도 쓰지 않아요.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>사용시간은 어떻게 재나요?</summary>
+    <div class="ans">
+      <p>Claude와 실제로 주고받은 시간을 더해요.</p>
+      <ul>
+        <li>5분 넘게 아무 대화가 없으면 5분까지만 세요. 자리를 비운 시간은 빠져요.</li>
+        <li>여러 창을 동시에 띄워 쓴 시간은 한 번만 세요.</li>
+      </ul>
+    </div>
+  </details>
+
+  <details>
+    <summary>비용이나 용량이 드나요?</summary>
+    <div class="ans">
+      <p>영수증 한 장에 Claude를 1분 남짓 써요. 내 사용량에서 나가요. 영수증 파일은 하루 15KB 정도라 용량 걱정은 없어요.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>안 될 때는요?</summary>
+    <div class="ans">
+      <ul>
+        <li><b>자동으로 안 왔어요</b>: 그 시각에 PC나 앱이 꺼져 있었는지 확인해 주세요.</li>
+        <li><b>"오늘 기록이 없어요"가 떠요</b>: 오늘 한 일을 몇 줄 적어 보내면 그대로 영수증이 돼요.</li>
+        <li><b>Claude Code에서 "does not support this model"이 보여요</b>: 터미널에서 <code>claude update</code>를 한 번 실행하세요.</li>
+      </ul>
+    </div>
+  </details>
+
+  <details>
+    <summary>그만 쓰고 싶어요</summary>
+    <div class="ans">
+      <ul>
+        <li><b>데스크톱 앱</b>: 커스터마이징 › 플러그인에서 daily-receipt를 제거하고, Cowork 예약 작업도 지워요.</li>
+        <li><b>Claude Code</b>: "영수증 자동 실행 꺼줘"라고 보낸 뒤 <code>claude plugin uninstall daily-receipt</code>를 실행해요.</li>
+      </ul>
+    </div>
+  </details>
+</section>
+
+<p class="foot">공식 주소는 <b>github.com/ugjung/daily-receipt</b> 하나뿐이에요. GitHub 계정은 필요 없고, 내 기록만 읽고 밖으로 보내지 않아요. 문의는 AX팀으로.</p>
+
+<script>
+(function(){
+  var ORDERS = {
+    app: {
+      title: '데스크톱 앱',
+      items: [
+        { name: '플러그인 추가', time: '2분',
+          how: '내 계정에 영수증 기능을 한 번 넣어 두는 단계예요. 먼저 주소를 복사하고, 버튼을 눌러 플러그인 화면을 여세요.',
+          copyFirst: true,
+          link: { href: 'https://claude.ai/customize/plugins', label: '플러그인 화면 바로 열기' },
+          steps: [
+            '열린 화면에서 [추가]를 누르고 [마켓플레이스 추가]를 골라요.',
+            '[저장소에서 추가] 칸에 복사한 주소를 붙여 넣어요.',
+            '[발견] 탭에서 daily-receipt를 골라 [추가]를 누르면 끝이에요.'
+          ],
+          copy: 'ugjung/daily-receipt',
+          mock: true,
+          after: '버튼이 안 열리면 Claude 앱 왼쪽 사이드바의 [커스터마이징]에서 [플러그인]으로 들어가도 돼요. 영어 화면이면 Customize, Plugins, Add, Discover예요.' },
+        { name: 'Cowork에 한 번 보내기', time: '10초',
+          how: 'Cowork 탭 새 작업에 보내요. 시각은 원하는 대로 바꿔도 돼요.',
+          copy: '평일 6시마다 오늘 한 일 영수증 만들어 주는 반복 작업 등록해줘' }
+      ],
+      total: '평일 6시마다 Cowork에 영수증이 도착해요.'
+    },
+    code: {
+      title: 'Claude Code',
+      items: [
+        { name: '설치해 달라고 보내기', time: '1분',
+          how: 'Claude Code에 보내고, 허락 버튼만 누르면 설치돼요.',
+          copy: 'https://github.com/ugjung/daily-receipt 이 플러그인 설치해줘' },
+        { name: '받을 시각 정하기', time: '30초',
+          how: 'Claude Code를 새로 열고 보내요. "18시"나 "1시간마다"처럼 답하면 돼요.',
+          copy: '/daily-receipt:setup' }
+      ],
+      total: '정한 시각마다 브라우저에 영수증이 떠요.'
+    }
+  };
+
+  function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+  // [버튼 이름]을 실제 버튼처럼 보이는 칩으로 바꾼다
+  function ui(s){ return esc(s).replace(/\[([^\]]+)\]/g, '<span class="btn">$1</span>'); }
+  // 주소를 붙여 넣는 창의 예시 그림
+  // 플러그인 화면 그림: 번호는 위 단계 번호와 같다
+  var MOCK = '<figure class="mock" aria-label="플러그인 화면에서 누를 곳 그림">' +
+    '<div class="app">' +
+      '<div class="side"><div class="si">새 채팅</div><div class="si">Cowork</div><div class="si on">커스터마이징</div><div class="si dim">프로젝트</div></div>' +
+      '<div class="main">' +
+        '<div class="mh"><b>플러그인</b><span class="addbtn">추가 <i class="pin">1</i></span></div>' +
+        '<div class="menu"><div>플러그인 업로드</div><div class="hl">마켓플레이스 추가</div></div>' +
+        '<div class="dlg"><div class="dt">마켓플레이스 추가</div><div class="dl">저장소에서 추가 <i class="pin">2</i></div><div class="field">ugjung/daily-receipt<i></i></div></div>' +
+        '<div class="tabs"><span class="tb on">발견 <i class="pin">3</i></span><span class="tb">설치됨</span></div>' +
+        '<div class="plug"><div><b>daily-receipt</b><small>오늘 한 일 영수증</small></div><span class="go">추가</span></div>' +
+      '</div>' +
+    '</div>' +
+    '<figcaption>번호 순서대로 누르면 돼요. 이해를 돕는 그림이라 실제 화면과 모양은 조금 다를 수 있어요.</figcaption></figure>';
+  var paper = document.getElementById('paper');
+
+  function render(key, animate){
+    var o = ORDERS[key];
+    paper.innerHTML =
+      '<p class="ph">주문 내역</p><p class="pm">' + esc(o.title) + ' / 설치 2단계</p><div class="dash"></div>' +
+      o.items.map(function(it, i){
+        return '<div class="item"><div class="line"><span class="n">' + (i+1) + '</span><span>' + esc(it.name) + '</span><span class="dots"></span><span class="t">' + esc(it.time) + '</span></div>' +
+          '<p class="how">' + esc(it.how) + '</p>' +
+          (it.copyFirst ? '<div class="copybox"><span class="txt">' + esc(it.copy) + '</span><button class="copy" type="button">복사</button></div>' : '') +
+          (it.link ? '<a class="open" href="' + it.link.href + '" target="_blank" rel="noopener">' + esc(it.link.label) + '</a>' : '') +
+          (it.steps ? '<ol class="substeps">' + it.steps.map(function(s){ return '<li>' + ui(s) + '</li>'; }).join('') + '</ol>' : '') +
+          (it.copyFirst ? '' : '<div class="copybox"><span class="txt">' + esc(it.copy) + '</span><button class="copy" type="button">복사</button></div>') +
+          (it.mock ? MOCK : '') +
+          (it.after ? '<p class="how after">' + ui(it.after) + '</p>' : '') + '</div>';
+      }).join('') +
+      '<div class="dash"></div><div class="total"><span>합계</span><b>그다음은 알아서</b></div><p class="total-note">' + esc(o.total) + '</p>' +
+      '<div class="bc"></div><p class="thanks">설치 후 영수증은 내 PC와 내 계정에만 남아요</p>';
+    if (animate) { paper.classList.remove('print'); void paper.offsetWidth; paper.classList.add('print'); }
+  }
+
+  document.querySelectorAll('.opt').forEach(function(b){
+    b.addEventListener('click', function(){
+      if (b.getAttribute('aria-pressed') === 'true') return;
+      document.querySelectorAll('.opt').forEach(function(x){ x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+      render(b.dataset.pick, true);
+    });
+  });
+
+  paper.addEventListener('click', function(e){
+    var b = e.target.closest('.copy'); if (!b) return;
+    var el = b.parentNode.querySelector('.txt'), text = el.textContent;
+    function ok(){ b.textContent = '복사됨'; b.classList.add('done'); setTimeout(function(){ b.textContent = '복사'; b.classList.remove('done'); }, 1500); }
+    function sel(){ var r = document.createRange(); r.selectNodeContents(el); var s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = 'Ctrl+C'; }
+    try { navigator.clipboard.writeText(text).then(ok, sel); } catch(err) { sel(); }
+  });
+
+  render(location.hash === '#code' ? 'code' : 'app', false);
+  if (location.hash === '#code') document.querySelectorAll('.opt').forEach(function(x){ x.setAttribute('aria-pressed', x.dataset.pick === 'code' ? 'true' : 'false'); });
+})();
+</script>
