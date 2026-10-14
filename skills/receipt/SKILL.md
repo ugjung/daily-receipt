@@ -34,7 +34,7 @@ Cowork나 데스크톱 앱에서는 ~/.claude/projects가 비어 있거나 볼 �
 2. 지금 세션에서 그날 한 일도 포함한다(영수증 요청 자체는 뺀다).
 3. 둘 다 없으면 지어내지 말고 "오늘 한 일을 몇 줄로 적어 주시면 영수증으로 만들어 드릴게요"라고 묻는다. 예약 실행이면 "오늘 볼 수 있는 기록이 없어요"라고만 남긴다.
 
-이 경우 메시지 시각을 알면 minutes(5분 넘는 간격은 5분)로, 모르면 시간을 추측하지 말고 품목마다 `chats`(대화 수)를 쓴다. 영수증은 render.py 대신 `<스킬폴더>/assets/receipt-template.html`의 `id="data"` JSON만 바꿔서 만든다(minutes와 chats를 둘 다 처리한다). 파일로 저장할 수 있으면 `~/Documents/claude-receipts/YYYY-MM-DD.html`, 아니면 HTML 아티팩트나 작업 폴더에 저장해서 보여 준다.
+이 경우 메시지 시각을 알면 minutes(5분 넘는 간격은 5분)로, 모르면 시간을 추측하지 말고 품목마다 `chats`(대화 수)를 쓴다. 영수증은 render.py로 만들어도 되고(minutes 대신 chats도 받는다), 파이썬을 못 쓰면 `<스킬폴더>/assets/receipt-template.html`의 `id="data"` JSON만 바꿔서 만든다. 파일로 저장할 수 있으면 `~/Documents/claude-receipts/YYYY-MM-DD.html`, 아니면 HTML 아티팩트나 작업 폴더에 저장해서 보여 준다.
 
 ## 추리기 규칙 (핵심)
 
