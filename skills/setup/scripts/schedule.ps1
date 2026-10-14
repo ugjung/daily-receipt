@@ -1,11 +1,13 @@
 # Daily receipt scheduler for Windows. ASCII only (Windows PowerShell 5.1 reads non-BOM files as ANSI).
 #   -Time 18:00 [-EveryDay] [-NoOpen]   turn on / change time
+#   -Hourly [-NoOpen]                     run every hour on the hour (skips hours with no new Claude activity)
 #   -Off                                  turn off
 #   -Status                               show current state
 #   -Store "..." -Customer "..."          save names shown on the receipt
 param(
     [string]$Time,
     [switch]$EveryDay,
+    [switch]$Hourly,
     [switch]$NoOpen,
     [switch]$Off,
     [switch]$Status,
@@ -45,8 +47,8 @@ if ($Off) {
     exit 0
 }
 
-if ($Time) {
-    if ($Time -notmatch '^\d{1,2}:\d{2}$') { throw "Time must be HH:mm, got '$Time'" }
+if ($Time -or $Hourly) {
+    if ($Time -and $Time -notmatch '^\d{1,2}:\d{2}$') { throw "Time must be HH:mm, got '$Time'" }
     $claude = (Get-Command claude -ErrorAction SilentlyContinue).Source
     if (-not $claude) { throw "claude command not found in PATH" }
     if ($claude -like '*.ps1') { $alt = [IO.Path]::ChangeExtension($claude, '.cmd'); if (Test-Path $alt) { $claude = $alt } }
@@ -56,6 +58,10 @@ if ($Time) {
     # reading, and writing inside Documents\claude-receipts.
     $run = @"
 `$ErrorActionPreference = 'Continue'
+# Skip when there is no new Claude Code activity since the last run (saves usage at night and on weekends).
+`$stamp = '$Dir\last-run.txt'
+`$newest = Get-ChildItem (Join-Path `$HOME '.claude\projects') -Filter *.jsonl -Recurse -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+if ((Test-Path `$stamp) -and `$newest -and (`$newest.LastWriteTime -le (Get-Item `$stamp).LastWriteTime)) { exit 0 }
 `$day = Get-Date -Format 'yyyy-MM-dd'
 `$log = Join-Path '$Dir\logs' "`$day.log"
 [Console]::OutputEncoding = [Text.Encoding]::UTF8
@@ -63,24 +69,35 @@ if ($Time) {
 Set-Location `$HOME
 & '$claude' -p '/daily-receipt:receipt scheduled-run' --allowedTools 'Bash(python *)' 'Read' 'Glob' 'Edit(~/Documents/claude-receipts/**)' *> `$log
 `$html = Join-Path `$HOME "Documents\claude-receipts\`$day.html"
+Set-Content -Path `$stamp -Value (Get-Date -Format o)
 if ($open -and (Test-Path `$html) -and ((Get-Item `$html).LastWriteTime -gt (Get-Date).AddHours(-1))) { Start-Process `$html }
 Get-ChildItem '$Dir\logs' -Filter *.log | Where-Object LastWriteTime -lt (Get-Date).AddDays(-30) | Remove-Item -ErrorAction SilentlyContinue
 "@
     [IO.File]::WriteAllText($RunPath, $run, (New-Object Text.UTF8Encoding($true)))
 
+    if ($Hourly) {
+        $next = (Get-Date).Date.AddHours((Get-Date).Hour + 1)
+        $trigger = New-ScheduledTaskTrigger -Once -At $next -RepetitionInterval (New-TimeSpan -Hours 1) -RepetitionDuration (New-TimeSpan -Days 3650)
+    } else {
     $at = [datetime]::ParseExact($Time.PadLeft(5, '0'), 'HH:mm', $null)
     $trigger = if ($EveryDay) { New-ScheduledTaskTrigger -Daily -At $at }
                else { New-ScheduledTaskTrigger -Weekly -DaysOfWeek Monday,Tuesday,Wednesday,Thursday,Friday -At $at }
+    }
     $action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$RunPath`""
     $settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -ExecutionTimeLimit (New-TimeSpan -Minutes 30) -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries
     Register-ScheduledTask -TaskName $TaskName -Trigger $trigger -Action $action -Settings $settings -Description 'Claude Code daily receipt' -Force | Out-Null
-    Set-Field $cfg 'schedule' ([ordered]@{ time = $Time; weekdays_only = (-not $EveryDay); open_after = (-not $NoOpen) })
-    Write-Output "ON: $Time $(if ($EveryDay) {'every day'} else {'weekdays'})"
+    if ($Hourly) {
+        Set-Field $cfg 'schedule' ([ordered]@{ every = 'hour'; open_after = (-not $NoOpen) })
+        Write-Output "ON: every hour, first run $next"
+    } else {
+        Set-Field $cfg 'schedule' ([ordered]@{ time = $Time; weekdays_only = (-not $EveryDay); open_after = (-not $NoOpen) })
+        Write-Output "ON: $Time $(if ($EveryDay) {'every day'} else {'weekdays'})"
+    }
 }
 
 Write-Config $cfg
 
-if ($Status -or -not ($Time -or $Store -or $Customer)) {
+if ($Status -or -not ($Time -or $Hourly -or $Store -or $Customer)) {
     $t = Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
     if ($t) {
         $i = $t | Get-ScheduledTaskInfo

@@ -25,6 +25,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "<스킬폴더>/scripts/sche
 
 # 매일 실행:      -Time 18:00 -EveryDay
 # 끝나고 창 안 띄움: -NoOpen
+# 1시간마다:     -Hourly  (지난 실행 뒤 Claude 사용 기록이 없으면 그 시간은 건너뜀)
 # 끄기:          -Off
 # 상태 보기:      -Status
 ```
